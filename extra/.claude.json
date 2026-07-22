@@ -1,0 +1,17 @@
+{
+  "theme": "dark",
+  "recommendedSettings": true,
+  "trustWorkspace": true,
+  "hasCompletedOnboarding": true,
+  "forceLoginMethod": "claudeai",
+  "projects": {
+    "/workspaces/cc-adv": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": true
+    }
+  }
+}

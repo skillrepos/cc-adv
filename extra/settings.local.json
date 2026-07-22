@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(pip install:*)",
+      "Bash(chmod:*)",
+      "Bash(jq:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

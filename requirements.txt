@@ -1,0 +1,12 @@
+# Python dependencies for the Advanced Claude Code workshop labs.
+#
+# Codespace users: these are installed automatically into a virtual env when the
+# container is created (see .devcontainer/devcontainer.json) — no action needed.
+#
+# Local / non-Codespace users: install with
+#     python3 -m pip install -r requirements.txt
+# (ideally inside a virtual env).
+
+flask>=3.0            # Labs 1, 3, 5 — the to-do API used as the analysis target
+claude-agent-sdk      # Lab 4 — the Claude Agent SDK
+mcp>=1.2              # Lab 5 — the Python MCP SDK (FastMCP) for the capstone server

@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+"""Lab 4 (Part 2): Unattended agent runs that never hang.
+
+For an unattended run, policy has to be enforced on EVERY tool call. The right
+tool for that is a PreToolUse hook: the CLI runs it before each tool executes,
+no matter what, and the hook allows or denies the call by returning a
+permissionDecision.
+
+(ClaudeAgentOptions also has a can_use_tool callback, but the CLI only calls it
+for tools that resolve to "ask" -- it is skipped for anything already permitted
+by allowed_tools, permission_mode, or your settings. So can_use_tool is NOT a
+reliable universal gate for an unattended agent. The PreToolUse hook is.)
+
+[Lab 4 - Advanced Claude Code - Rev 1.0 - 07/07/26]
+"""
+import asyncio
+
+from claude_agent_sdk import ClaudeAgentOptions, HookMatcher, ResultMessage, query
+
+TASK = (
+    "Create a file named agent_report.md that lists every .py file in the app "
+    "directory with a one-line description of each. Then say DONE."
+)
+
+
+async def gatekeeper(input_data, tool_use_id, context):
+    """PreToolUse gate: deny destructive Bash, allow everything else. Never asks a human."""
+    tool_name = input_data.get("tool_name", "")
+    command = input_data.get("tool_input", {}).get("command", "")
+    if tool_name == "Bash" and ("rm " in command or "sudo" in command):
+        print(f"  [gatekeeper] DENIED: {tool_name} -> {command!r}")
+        return {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": "Destructive commands are blocked in unattended runs",
+            }
+        }
+    print(f"  [gatekeeper] allowing: {tool_name}")
+    return {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "allow",
+        }
+    }
+
+
+async def prompt_stream():
+    yield {"type": "user", "message": {"role": "user", "content": TASK}}
+
+
+async def main() -> None:
+    options = ClaudeAgentOptions(
+        allowed_tools=["Read", "Glob", "Grep", "Write"],  # tools we expect it to use
+        max_turns=10,                                     # hard stop for runaways
+        hooks={"PreToolUse": [HookMatcher(matcher=None, hooks=[gatekeeper])]},
+    )
+
+    async for message in query(prompt=prompt_stream(), options=options):
+        if isinstance(message, ResultMessage):
+            print(f"\nFinished in {message.num_turns} turns.")
+            print(f"Result: {message.result}")
+
+
+asyncio.run(main())

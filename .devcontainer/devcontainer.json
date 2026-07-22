@@ -1,0 +1,48 @@
+{
+  "name": "Advanced Claude Code Workshop",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "ms-python.python",
+        "anthropic.claude-code",
+        "Anthropic.claude-code"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "workbench.startupEditor": "readme",
+        "workbench.editorAssociations": {
+          "**/.claude/commands/*.md": "default",
+          "**/.claude/agents/*.md": "default",
+          "**/.claude/skills/**/*.md": "default",
+          "*.md": "vscode.markdown.preview.editor"
+        }
+      }
+    }
+  },
+  "postCreateCommand": "npm install -g @anthropic-ai/claude-code && python3 -m venv .venv && .venv/bin/python -m pip install --upgrade pip && .venv/bin/python -m pip install -r requirements.txt && echo 'for v in /workspaces/*/.venv/bin/activate; do [ -f \"$v\" ] && . \"$v\" && break; done' >> ~/.bashrc",
+  "postAttachCommand": "cp extra/.claude.json ~/ && echo alias claude-yolo=\\\"claude --dangerously-skip-permissions\\\" >> ~/.bash_aliases",
+  "remoteUser": "node"
+}
