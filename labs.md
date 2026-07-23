@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — custom commands, hooks, CI automation, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.4 - 07/22/26
+## Revision 1.6 - 07/23/26
 
 <br><br>
 
@@ -15,11 +15,11 @@
 > ```
 > /model
 > ```
-> In the list that comes up, type "2" or use the arrow keys to move the pointer to "2" and hit *Enter*. Also use the left/right arrow keys to set the thinking mode to *medium*.
+> In the list that comes up, use the up/down arrow keys to move the pointer to *Sonnet* and hit *Enter*. **Select by name, not by number** — the menu order changes over time (Sonnet is currently option 4; option 2 is now Opus, and there's a newer *Fable* option). Also use the left/right arrow keys to set the thinking effort to *medium* (it now defaults to *high*).
 >
 > ![set model](./images/ccode209.png?raw=true "set model")
 >
-> You should see an indicator that the model was set to a *Sonnet* model (e.g., *claude-sonnet-4-6* or later — the exact version shown may be newer). Note: your `/model` selection is saved as the default for new sessions; press `s` in the model list to set it for the current session only.
+> You should see an indicator that the model was set to a *Sonnet* model (currently *Sonnet 5* / `claude-sonnet-5` — the exact version shown may be newer). Note: your `/model` selection is saved as the default for new sessions; press `s` in the model list to set it for the current session only.
 >
 <br><br>
 
@@ -65,7 +65,7 @@ Claude will scan the project and orient you — the "explore before you edit" ha
 /init
 ```
 
-When it finishes, open the generated `CLAUDE.md` (you can use the `code` command in the codespace) and skim it. Note that it found the test suite and the directory layout on its own.
+`/init` analyzes the repo and then asks **"Do you want to create CLAUDE.md?"** — choose option 1 (Yes) to let it write the file. When it finishes, open the generated `CLAUDE.md` (you can use the `code` command in the codespace) and skim it. Note that it found the test suite and the directory layout on its own.
 
 ![claude.md](./images/ccode226.png?raw=true "claude.md")
 
@@ -110,7 +110,7 @@ Watch for the saved-memory confirmation. Verify where it went (in the codespace)
 /memory
 ```
 
-Find the project-level CLAUDE.md you just updated and the auto-memory entry holding your "remember" fact (note its on/off toggle) — this is also where you'd spot an enterprise- or user-level file overriding project rules. Hit *Esc* to exit the view.
+The `/memory` view is a menu of your memory sources: **Auto-memory** (shown as on/off — this holds the "remember" fact you just saved), **Project memory** (the `./CLAUDE.md` you just updated), **User memory** (`~/.claude/CLAUDE.md`), and an option to open the auto-memory folder. Selecting an entry opens it. An enterprise- or user-level file overriding project rules would show up here too. Hit *Esc* to exit the view.
 
 ![memory hierarchy](./images/ccode228.png?raw=true "memory hierarchy")
 
@@ -165,10 +165,12 @@ Four advanced features in one file:
 **What we're doing:** Triaging `app/app.py` — the file with the four planted contract violations.
 **Why:** To see a parameterized command earn its keep on real code.
 
-**Action:** Back in Claude, type:
+**Action:** Claude Code loads custom commands at **startup**, so the session you've had running since Step 1 doesn't know about `/triage` yet (running it now would say *"Unknown command: /triage"*). Restart Claude so it picks up the new command — type `exit`, then `claude` again. Then type:
 ```
 /triage app/app.py
 ```
+
+The first time you invoke a project command, Claude asks **"Use skill 'triage'?"** — approve it (option 1).
 
 Watch the output: the git context and CLAUDE.md were injected automatically, and the triage should call out the API's habit of returning **500** where the contract demands **400** (bad input) or **404** (missing item) — the exact failures in the test suite. Keep this in mind; automation will meet these bugs again in Labs 3-5.
 
@@ -202,12 +204,12 @@ disallowedTools: Write, Edit
 - Keep the whole report under 10 lines. Never modify files.
 ```
 
-**Action:** Back in Claude, type:
+**Action:** Just like a command, a newly-created agent isn't picked up until Claude restarts (in the running session Claude will say *"There's no test-scout agent type available"*). Restart Claude again — `exit`, then `claude`. Then type:
 ```
 Use the test-scout subagent to run the test suite and summarize the failures.
 ```
 
-Approve as needed. You should get back a compact report (10 passed / 4 failed with one-line causes) — the full test output never entered your main context, and the run happened on Haiku.
+Approve as needed — the subagent runs as a background agent and will ask before it runs its `python3 app/test_app.py` command. You should get back a compact report (10 passed / 4 failed with one-line causes) — the full test output never entered your main context, and the run happened on Haiku.
 
 > **The `model:` values:** an alias (`haiku`, `sonnet`, `opus`, `fable`), a full model string (e.g. `claude-haiku-4-5`), or `inherit` (the default — use the main session's model). The same field works in command frontmatter, `--model` works for headless/CI runs, and `ClaudeAgentOptions(model="haiku")` does it in the Agent SDK (Lab 4). The pattern: **cheap scouts, smart supervisor.**
 
@@ -1093,7 +1095,7 @@ You'll see the server entry with its `command` and `args` — plain JSON, no sec
 claude mcp list
 ```
 
-You should see **project-health** with a **✓ Connected** status. If it fails, run the server by hand (step 4) and read the error — with your own server, *you* are now the maintainer.
+Because you added it at **project scope** (`.mcp.json`), `claude mcp list` will show **project-health** as **⏸ Pending approval (run `claude` to approve)** — project-scoped servers stay unapproved until you accept them inside a session, which you'll do in the next step. (If you'd added it at *local* scope you'd see **✓ Connected** here instead.) If instead you see a connection *error*, run the server by hand (step 4) and read the message — with your own server, *you* are now the maintainer.
 
 ![mcp list](./images/cc-se13.png?raw=true "mcp list")
 
