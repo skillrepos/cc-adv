@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — custom commands, hooks, CI automation, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.2 - 07/22/26
+## Revision 1.4 - 07/22/26
 
 <br><br>
 
@@ -72,18 +72,31 @@ When it finishes, open the generated `CLAUDE.md` (you can use the `code` command
 ---
 <br><br>
 
-## 3: Add a Standing Rule with # Memory *(recap)*
-**What we're doing:** Adding one critical project rule as a persistent memory.
-**Why:** There's a rule today's automation labs depend on: the test file defines the *contract* and must never be edited. Memories persist across sessions.
+## 3: Add a Standing Rule — and a Persistent Memory *(recap)*
+**What we're doing:** Persisting one fact two ways: a shared project rule in CLAUDE.md, and a personal memory in Claude's auto-memory file.
+**Why:** There's a rule today's automation labs depend on: the test file defines the *contract* and must never be edited. That belongs in CLAUDE.md — committed, seen by every session, teammate, and CI run. Claude also keeps *auto-memory* (a MEMORY.md per project, per user): ask it to **remember** something and it saves the fact there for future sessions.
 
-**Action:** Type:
+**Action:** First, the shared rule. Type:
 ```
-# The test suite is run with: python3 app/test_app.py. Never edit app/test_app.py - it defines the correct contract.
+Add this standing rule to CLAUDE.md: The test suite is run with python3 app/test_app.py. Never edit app/test_app.py - it defines the correct contract.
 ```
 
-Claude saves this to a persistent memory file.
+Approve the edit and confirm the rule landed in `CLAUDE.md`.
 
-![Create memory](./images/ccode213.png?raw=true "Create memory")
+**Action:** Now a personal memory. Type:
+```
+Remember that when I ask for code reviews in this repo, I want short, test-first explanations.
+```
+
+Watch for the saved-memory confirmation. Verify where it went (in the codespace):
+```
+! cat ~/.claude/projects/-workspaces-cc-adv/memory/MEMORY.md
+```
+(Running locally? The directory under `~/.claude/projects/` is named after your repo path.)
+
+> **Rule of thumb:** *enforced and shared* → CLAUDE.md (in the repo). *Personal and learned* → auto-memory (per user, per machine; the first ~200 lines load each session). You'll also see Claude add memories on its own as it works.
+
+![Add rule and memory](./images/ccadv9.png?raw=true "Add rule and memory")
 
 ---
 <br><br>
@@ -97,7 +110,7 @@ Claude saves this to a persistent memory file.
 /memory
 ```
 
-Find the project-level CLAUDE.md you just generated and the memory you just added. Hit *Esc* to exit the view.
+Find the project-level CLAUDE.md you just updated and the auto-memory entry holding your "remember" fact (note its on/off toggle) — this is also where you'd spot an enterprise- or user-level file overriding project rules. Hit *Esc* to exit the view.
 
 ![memory hierarchy](./images/ccode228.png?raw=true "memory hierarchy")
 
@@ -260,7 +273,7 @@ exit
 ## Lab Summary
 ✅ You've successfully:
 - Generated CLAUDE.md for a real multi-directory codebase
-- Added a persistent project rule via # memory and viewed the hierarchy
+- Persisted a shared rule in CLAUDE.md and a personal fact in auto-memory ("Remember..."), then viewed the hierarchy
 - Built a custom command using $ARGUMENTS, frontmatter, inline bash context, @file references, and scoped allowed-tools
 - Triaged the buggy API with your own command
 - Created a `model: haiku` subagent and delegated verbose test output to it — cheap scouts, smart supervisor
