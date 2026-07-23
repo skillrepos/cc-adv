@@ -69,6 +69,8 @@ While logged in to GitHub, go to https://github.com/settings/codespaces. Set the
 
 From the repo page at https://github.com/skillrepos/cc-adv, click the green **Code** button, choose the **Codespaces** tab, and create a codespace on main. Give it a few minutes to build — the container installs Claude Code, creates a Python virtual environment, and installs the lab dependencies automatically.
 
+Click here ------> [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/skillrepos/cc-adv?quickstart=1)
+
 <br><br>
 
 ## 8. Start Claude Code and authenticate
