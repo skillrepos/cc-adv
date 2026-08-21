@@ -6,13 +6,13 @@ This 3-hour hands-on workshop picks up where the introductory Claude Code course
 
 **Prerequisites:** Completion of the introductory Claude Code workshop (skillrepos/ccode) or equivalent hands-on experience. A paid Claude account. Comfort with terminal-based workflows.
 
-**NOTE: This is a hands-on workshop — bring a personal laptop (corporate ones may not allow the labs to work).**
-
 These instructions will guide you through configuring the environment you'll use for the labs.
 
 ## 1. If you don't already have a paid Claude account, sign up for one at [claude.ai](https://claude.ai).
 
 You **must** have a paid Claude account to use Claude Code.
+
+![Claude signup](./images/ccode76.png?raw=true "Claude signup")
 
 <br><br>
 
@@ -35,6 +35,8 @@ git clone https://github.com/skillrepos/cc-adv
 ## 4. If you want to install Claude Code on your local system (and are allowed to):
 
 Go to [Get Started](https://code.claude.com/docs/en/overview#get-started), choose the **Terminal** tab and proceed with installation for your desired platform.
+
+![Claude terminal setup](./images/ccode208.png?raw=true "Claude terminal setup")
 
 Then install the Python lab dependencies from the repo root:
 
@@ -63,11 +65,17 @@ If in the terminal integration, change into your cloned directory and you can li
 
 While logged in to GitHub, go to https://github.com/settings/codespaces. Set the default idle timeout to a larger value (like 90 minutes or more) so your codespace doesn't stop during lecture segments.
 
+![Increasing default timeout](./images/ccode77.png?raw=true "Increasing default timeout")
+
 <br><br>
 
 ## 7. Start the codespace
 
 From the repo page at https://github.com/skillrepos/cc-adv, click the green **Code** button, choose the **Codespaces** tab, and create a codespace on main. Give it a few minutes to build — the container installs Claude Code, creates a Python virtual environment, and installs the lab dependencies automatically.
+
+<br/><br/>
+
+Click here ------> [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/skillrepos/cc-adv?quickstart=1)
 
 <br><br>
 
