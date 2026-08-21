@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — custom commands, hooks, CI automation, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.4 - 07/22/26
+## Revision 1.10 - 08/21/26
 
 <br><br>
 
@@ -15,15 +15,17 @@
 > ```
 > /model
 > ```
-> In the list that comes up, type "2" or use the arrow keys to move the pointer to "2" and hit *Enter*. Also use the left/right arrow keys to set the thinking mode to *medium*.
+> In the list that comes up, use the up/down arrow keys to move the pointer to *Sonnet* and hit *Enter*. **Select by name, not by number** — the menu order shifts as models are added (the list carries Opus 5 and, on some accounts, Fable 5). Each row also shows that model's price per million tokens. Also use the **left/right** arrow keys to set the **effort level** to *medium* (it defaults to *high*).
 >
 > ![set model](./images/ccode209.png?raw=true "set model")
 >
-> You should see an indicator that the model was set to a *Sonnet* model (e.g., *claude-sonnet-4-6* or later — the exact version shown may be newer). Note: your `/model` selection is saved as the default for new sessions; press `s` in the model list to set it for the current session only.
+> You should see an indicator that the model was set to a *Sonnet* model (currently *Sonnet 5* / `claude-sonnet-5` — the exact version shown may be newer) with *medium* effort. Note: your `/model` selection is saved as the default for new sessions; press `s` in the model list to set it for the current session only.
+>
+> **Today's ladder:** Haiku 4.5 $1/$5 per million tokens · Sonnet 5 $2/$10 · Opus 5 $5/$25 · Fable 5 $10/$50. Sonnet 5, Opus 5 and Fable 5 all carry a 1M-token context window at standard rates, so above Haiku you buy judgment, speed, and knowledge recency (Opus 5's cutoff is May 2026 against January 2026 for Sonnet 5 and Fable 5).
 >
 <br><br>
 
-**NOTE:** This course assumes you've completed the introductory Claude Code workshop (or equivalent). Where a step exercises something from that course, it's marked *(recap)* and kept quick. Throughout the labs, you can use the `claude --dangerously-skip-permissions` mode (alias `claude-yolo` in the codespace) where a lab says it's OK, to avoid responding to most permission prompts.
+**NOTE:** This course assumes you've completed the introductory Claude Code workshop (or equivalent). Steps that exercise something from that course are marked *(recap)* and kept quick. Since **August 14, 2026** your sessions start in **auto mode** on Pro, Max, and Team plans, so most permission prompts are already gone — a background classifier approves routine actions and stops for risky ones. Where a lab says it's OK, `claude --dangerously-skip-permissions` (alias `claude-yolo` in the codespace) removes the remaining checks as well.
 
 <br><br>
 
@@ -32,14 +34,13 @@
 
 # Lab 1: Advanced Context, Custom Commands & Extended Thinking
 ## Lab Purpose
-Set up rich project context on a real codebase, build a production-grade custom slash command that combines arguments, frontmatter, live git context, and file references, delegate verbose work to a low-cost Haiku subagent, and use extended thinking for a hard planning task. Estimated time: 10-12 minutes.
+Build project context on a real codebase, a parameterized custom command, a skill, and a low-cost Haiku subagent, and use extended thinking. Estimated time: 10-12 minutes.
 
 ---
 <br><br>
 
 ## 1: Start Claude and Scout the Codebase *(recap)*
-**What we're doing:** Starting a session and getting oriented in the workshop repo.
-**Why:** This repo has real material to work on: a small Flask to-do API in `app/` (whose test suite fails in 4 places *by design*), Agent SDK skeletons in `sdk/`, and an MCP server skeleton in `mcpserver/`. Every lab today builds on it.
+The repo holds a Flask to-do API in `app/` (its test suite fails in 4 places *by design*), Agent SDK skeletons in `sdk/`, and an MCP server skeleton in `mcpserver/`.
 
 **Action:** In the terminal, start Claude:
 ```bash
@@ -51,30 +52,26 @@ Then type:
 Give me a one-paragraph overview of this repo: what's in app/, sdk/, and mcpserver/, and how do I run the tests?
 ```
 
-Claude will scan the project and orient you — the "explore before you edit" habit from the intro course.
-
 ---
 <br><br>
 
 ## 2: Generate the Project Context File *(recap)*
-**What we're doing:** Creating a CLAUDE.md for this project.
-**Why:** CLAUDE.md is read at the start of every session — it's where project knowledge lives. In the intro course you ran this on a toy project; here it maps a multi-directory codebase.
+CLAUDE.md is read at the start of every session.
 
 **Action:** Type:
 ```
 /init
 ```
 
-When it finishes, open the generated `CLAUDE.md` (you can use the `code` command in the codespace) and skim it. Note that it found the test suite and the directory layout on its own.
+In **manual** mode `/init` first asks **"Do you want to create CLAUDE.md?"** — choose option 1 (Yes); in **auto** mode (the default) it just creates it without asking. Open the generated `CLAUDE.md` (the `code` command works in the codespace) and skim it.
 
 ![claude.md](./images/ccode226.png?raw=true "claude.md")
 
 ---
 <br><br>
 
-## 3: Add a Standing Rule — and a Persistent Memory *(recap)*
-**What we're doing:** Persisting one fact two ways: a shared project rule in CLAUDE.md, and a personal memory in Claude's auto-memory file.
-**Why:** There's a rule today's automation labs depend on: the test file defines the *contract* and must never be edited. That belongs in CLAUDE.md — committed, seen by every session, teammate, and CI run. Claude also keeps *auto-memory* (a MEMORY.md per project, per user): ask it to **remember** something and it saves the fact there for future sessions.
+## 3: Persist a Rule, a Memory — and See the Hierarchy *(recap)*
+One fact, two homes: a shared rule in CLAUDE.md (committed, repo-wide) and a personal fact in *auto-memory* (a MEMORY.md per project, per user).
 
 **Action:** First, the shared rule. Type:
 ```
@@ -88,45 +85,35 @@ Approve the edit and confirm the rule landed in `CLAUDE.md`.
 Remember that when I ask for code reviews in this repo, I want short, test-first explanations.
 ```
 
-Watch for the saved-memory confirmation. Verify where it went (in the codespace):
+Watch for the saved-memory confirmation, then verify where it went (in the codespace):
 ```
 ! cat ~/.claude/projects/-workspaces-cc-adv/memory/MEMORY.md
 ```
 (Running locally? The directory under `~/.claude/projects/` is named after your repo path.)
 
-> **Rule of thumb:** *enforced and shared* → CLAUDE.md (in the repo). *Personal and learned* → auto-memory (per user, per machine; the first ~200 lines load each session). You'll also see Claude add memories on its own as it works.
+> **Rule of thumb:** *enforced and shared* → CLAUDE.md; *personal and learned* → auto-memory (per user, per machine; the first ~200 lines load each session).
 
 ![Add rule and memory](./images/ccadv9.png?raw=true "Add rule and memory")
 
----
-<br><br>
-
-## 4: Check the Memory Hierarchy *(recap)*
-**What we're doing:** Viewing how context is layered.
-**Why:** Enterprise → user → project — knowing *where* a rule lives tells you who it applies to. Advanced teams standardize this deliberately.
-
-**Action:** Type:
+**Action:** Now see how the layers stack. Type:
 ```
 /memory
 ```
 
-Find the project-level CLAUDE.md you just updated and the auto-memory entry holding your "remember" fact (note its on/off toggle) — this is also where you'd spot an enterprise- or user-level file overriding project rules. Hit *Esc* to exit the view.
+The view lists **Auto-memory**, **Project memory** (`./CLAUDE.md`) and **User memory** (`~/.claude/CLAUDE.md`), plus an option to open the auto-memory folder. Hit *Esc* to exit.
 
 ![memory hierarchy](./images/ccode228.png?raw=true "memory hierarchy")
 
 ---
 <br><br>
 
-## 5: Create a Real Custom Command
-**What we're doing:** Building `/triage` — a custom slash command with frontmatter, an argument, inline bash context, and a file reference.
-**Why:** In the intro course your commands were static prompt templates. Production commands are parameterized and *self-loading*: they pull in live context (git state, project rules) so the prompt is always current.
-
-**Action:** In a terminal tab (keep Claude running), create the commands folder:
+## 4: Create a Real Custom Command
+**Action:** In a terminal tab (keep Claude running), create the folders:
 ```bash
-mkdir -p .claude/commands
+mkdir -p .claude/commands .claude/skills
 ```
 
-**Action:** Make a new file `.claude/commands/triage.md` (remember you can use the `code` command in the codespace) and copy/paste the following contents into it, then save:
+**Action:** Create `.claude/commands/triage.md` (the `code` command works in the codespace) with these contents, and save:
 
 ```md
 ---
@@ -151,42 +138,63 @@ Triage the file $ARGUMENTS:
 
 Four advanced features in one file:
 
-- **`$ARGUMENTS`** — whatever you type after `/triage` lands here (there are also positional `$1`, `$2`, ... if you want separate parameters).
-- **`` !`git status --short` ``** — the backtick-bash runs *when the command is invoked* and its output is injected into the prompt.
-- **`@CLAUDE.md`** — pulls the file's contents into context, same as an @ mention.
-- **`allowed-tools`** — scopes what the command may do; note the fine-grained `Bash(git status:*)` rule syntax.
+- **`$ARGUMENTS`** — text typed after `/triage`; positional `$1`, `$2`, ... also work.
+- **`` !`git status --short` ``** — runs *when the command is invoked*; its output is injected into the prompt.
+- **`@CLAUDE.md`** — pulls the file into context, same as an @ mention.
+- **`allowed-tools`** — scopes what the command may do; note the fine-grained `Bash(git status:*)` syntax.
 
 ![Creating the triage command](./images/ccadv1.png?raw=true "Creating the triage command")
 
 ---
 <br><br>
 
-## 6: Run the Command on the Buggy API
-**What we're doing:** Triaging `app/app.py` — the file with the four planted contract violations.
-**Why:** To see a parameterized command earn its keep on real code.
-
-**Action:** Back in Claude, type:
+## 5: Run the Command on the Buggy API
+**Action:** Claude Code loads custom commands at **startup**, so your running session doesn't know `/triage` yet (it would say *"Unknown command: /triage"*). Restart Claude — `exit`, then `claude`. Then type:
 ```
 /triage app/app.py
 ```
 
-Watch the output: the git context and CLAUDE.md were injected automatically, and the triage should call out the API's habit of returning **500** where the contract demands **400** (bad input) or **404** (missing item) — the exact failures in the test suite. Keep this in mind; automation will meet these bugs again in Labs 3-5.
+In **manual** mode, the first time you invoke a project command Claude asks **"Use skill 'triage'?"** — approve it (option 1). In **auto** mode (the default) the skill loads without asking.
+
+Git context and CLAUDE.md are injected automatically. The triage should flag the API returning **500** where the contract demands **400** (bad input) or **404** (missing item) — the failures automation meets again in Labs 3-5.
 
 ![Running the triage command](./images/ccadv2.png?raw=true "Running the triage command")
 
 ---
 <br><br>
 
+## 6: Turn the Command Into a Skill — Without Restarting
+Custom commands have **merged into skills**: `.claude/commands/triage.md` and `.claude/skills/triage/SKILL.md` both create `/triage`, and the frontmatter means the same in both.
+
+**Action:** In your terminal tab (leave Claude running):
+```bash
+mkdir -p .claude/skills/triage
+mv .claude/commands/triage.md .claude/skills/triage/SKILL.md
+```
+
+**Action:** Now, **without restarting Claude**, run it against a different file:
+```
+/triage app/datastore.py
+```
+
+It works: **Claude Code watches skill directories and picks up adds, edits and removals inside the current session.** Commands and agents do not.
+
+> **If `/triage` isn't found**, restart Claude once — the watcher only follows directories that already existed at session start, which is why we created `.claude/skills` earlier.
+
+> **The folder also buys you:** supporting files beside `SKILL.md` (a `scripts/` helper makes results deterministic); `disable-model-invocation: true` for user-only skills (leave it off and Claude may load the skill itself when your request matches the description); `context: fork` for its own subagent; `background: true` to detach. A personal skill in `~/.claude/skills/` beats a project one; a project skill named `code-review` replaces the bundled `/code-review`.
+
+---
+<br><br>
+
 ## 7: Delegate to a Cheaper Model — a Haiku Subagent
-**What we're doing:** Creating a subagent pinned to a low-cost model and delegating verbose work to it.
-**Why:** Two levers at once. *Context isolation:* verbose output (test runs, logs) stays in the subagent — only a summary returns to your session. *Cost:* the `model:` frontmatter pins the subagent to a cheaper, faster model — Haiku is ideal for simple, high-volume work, while your main session stays on Sonnet for decisions.
+Verbose output stays in the subagent — only a summary returns — and `model:` pins it to a cheaper, faster model.
 
 **Action:** In your terminal tab, create the agents folder:
 ```bash
 mkdir -p .claude/agents
 ```
 
-**Action:** Make a new file `.claude/agents/test-scout.md`, copy/paste the following contents into it, and save:
+**Action:** Create `.claude/agents/test-scout.md` with these contents, and save:
 
 ```md
 ---
@@ -202,14 +210,14 @@ disallowedTools: Write, Edit
 - Keep the whole report under 10 lines. Never modify files.
 ```
 
-**Action:** Back in Claude, type:
+**Action:** A new agent isn't picked up until Claude restarts (the running session says *"There's no test-scout agent type available"*). Restart — `exit`, then `claude`. Then type:
 ```
 Use the test-scout subagent to run the test suite and summarize the failures.
 ```
 
-Approve as needed. You should get back a compact report (10 passed / 4 failed with one-line causes) — the full test output never entered your main context, and the run happened on Haiku.
+Approve as needed; the subagent runs in the background and asks before running `python3 app/test_app.py`. You get a compact report (10 passed / 4 failed with causes), run on Haiku, with the full test output kept out of your main context.
 
-> **The `model:` values:** an alias (`haiku`, `sonnet`, `opus`, `fable`), a full model string (e.g. `claude-haiku-4-5`), or `inherit` (the default — use the main session's model). The same field works in command frontmatter, `--model` works for headless/CI runs, and `ClaudeAgentOptions(model="haiku")` does it in the Agent SDK (Lab 4). The pattern: **cheap scouts, smart supervisor.**
+> **`model:` values:** an alias (`haiku`, `sonnet`, `opus`, `fable`), a full model string (`claude-haiku-4-5`), or `inherit` (the default). Same field in command frontmatter; `--model` for headless/CI; `ClaudeAgentOptions(model="haiku")` in the SDK (Lab 4). **Cheap scouts, smart supervisor.**
 
 ![Haiku test-scout subagent](./images/ccadv8.png?raw=true "Haiku test-scout subagent")
 
@@ -217,38 +225,37 @@ Approve as needed. You should get back a compact report (10 passed / 4 failed wi
 <br><br>
 
 ## 8: Use Extended Thinking for a Planning Task
-**What we're doing:** Asking for a refactor plan with the maximum thinking budget.
-**Why:** For multi-step reasoning — architecture, refactors, tricky bugs — you can grant Claude a bigger thinking budget. The main control is the thinking-effort setting in `/model`; starting a prompt with `ultrathink` requests the maximum budget for that one prompt.
+The **effort level** in `/model` is your session-wide dial; `ultrathink` anywhere in a prompt asks for deeper reasoning **on that turn only**.
+
+> **What `ultrathink` does:** Claude Code adds an in-context instruction to think harder; the effort level sent to the API is *unchanged*, so it stacks on whatever you set. **Not** keywords: "think", "think hard", "think more" — ordinary prompt text.
 
 **Action:** Type the following, then hit *Ctrl+o* while it runs to watch the thinking stream:
 ```
 ultrathink: Propose a refactoring plan for app/ that fixes the 400/404 contract violations without changing test_app.py. Consider at least two approaches and recommend one. Plan only - do not edit files.
 ```
 
-Notice in the thinking output how Claude weighs the alternatives *before* answering — that deliberation is what the bigger budget buys.
-
 ![Extended thinking](./images/ccadv3.png?raw=true "Extended thinking")
 
 ---
 <br><br>
 
-## 9: Session-Level Thinking Effort
-**What we're doing:** Checking where the *default* thinking level is set.
-**Why:** `ultrathink` is per-prompt; the session default lives in `/model`.
+## 9: Session-Level Effort
+The session default lives in `/model` — or in `/effort`, which sets it directly without opening the model picker.
 
 **Action:** Type:
 ```
 /model
 ```
 
-Use the left/right arrow keys to see the thinking effort options (you set *medium* at startup). Higher effort = more thinking on *every* prompt — more quality on hard tasks, more tokens and latency on easy ones. Leave it on *medium* and hit *Esc*.
+Use the left/right arrow keys to see the effort options: **low · medium · high · xhigh · max** (`high` is the default). Leave it on *medium* and hit *Esc*.
+
+> **Also:** `/effort ultracode` is a Claude Code *setting*, not a model level — it runs at `xhigh` with a dynamic multi-agent workflow. And **changing effort mid-session invalidates your prompt cache** (keyed by model *and* effort), so Claude Code asks you to confirm. Set model and effort once, at the top of a session.
 
 ---
 <br><br>
 
 ## 10: See What Your Context Costs *(recap)*
-**What we're doing:** Inspecting token usage now that CLAUDE.md, a memory, and a command exist.
-**Why:** Context is a budget. Everything you added in this lab rides along in every request — advanced users check this regularly.
+Everything you added in this lab rides along in every request.
 
 **Action:** Type:
 ```
@@ -256,6 +263,8 @@ Use the left/right arrow keys to see the thinking effort options (you set *mediu
 ```
 
 Find how much of the window is taken by system prompt, project files, and conversation.
+
+> **Companion:** `/usage` answers "what have I spent?" and on a paid plan breaks usage down **by attribution** — skills, subagents, plugins, each MCP server. Try it now; remember it in Lab 5.
 
 ![context usage](./images/ccode224.png?raw=true "context usage")
 
@@ -272,12 +281,12 @@ exit
 
 ## Lab Summary
 ✅ You've successfully:
-- Generated CLAUDE.md for a real multi-directory codebase
-- Persisted a shared rule in CLAUDE.md and a personal fact in auto-memory ("Remember..."), then viewed the hierarchy
-- Built a custom command using $ARGUMENTS, frontmatter, inline bash context, @file references, and scoped allowed-tools
-- Triaged the buggy API with your own command
-- Created a `model: haiku` subagent and delegated verbose test output to it — cheap scouts, smart supervisor
-- Used extended thinking (`ultrathink`) for a planning task and set session-level effort
+- Generated CLAUDE.md for a multi-directory codebase
+- Persisted a shared rule and a personal auto-memory; viewed both with `/memory`
+- Built `/triage` with `$ARGUMENTS`, inline bash context, `@file` references and scoped `allowed-tools`
+- Converted it to a **skill** — hot-reloaded without a restart
+- Delegated verbose test output to a `model: haiku` subagent
+- Used `ultrathink` and set session-level effort
 - Audited your context budget
 
 <br><br>
@@ -288,14 +297,13 @@ exit
 
 # Lab 2: Hooks: Enforcing Policy at the Tool Boundary
 ## Lab Purpose
-Learn how hooks let you enforce rules that Claude *cannot* talk its way around. You'll create a PreToolUse hook that blocks edits to a protected file and a PostToolUse hook that logs every bash command Claude runs — then watch both fire live, even in bypass-permissions mode. Estimated time: 10-12 minutes.
+Create a PreToolUse hook that blocks edits to a protected file and a PostToolUse hook that logs every bash command, then watch both fire — even in auto and bypass-permissions modes. Estimated time: 10-12 minutes.
 
 ---
 <br><br>
 
 ## 1: Set Up the Protected File and Hooks Folder
-**What we're doing:** Creating a file worth protecting and the folder where hook scripts live.
-**Why:** Our policy will be "nobody edits config.json" — a stand-in for the credentials/config files every real project has.
+The policy: nobody edits `config.json` — a stand-in for the credentials/config files every real project has.
 
 **Action:** In a regular terminal (not Claude), create the file:
 ```
@@ -311,12 +319,9 @@ mkdir -p .claude/hooks
 <br><br>
 
 ## 2: Create the Guard Script
-**What we're doing:** Writing the small shell script that decides whether an edit is allowed.
-**Why:** When a PreToolUse hook fires, Claude Code sends the tool call details as JSON on the script's *stdin*. The script inspects it and answers with an exit code: **exit 0** means "no objection," **exit 2** means "block it" — and whatever the script prints to *stderr* is fed back to Claude as the reason.
+Claude Code sends the tool call details as JSON on the script's *stdin*. The script answers with an exit code: **0** = no objection, **2** = block it — and whatever it prints to *stderr* goes back to Claude as the reason.
 
-**Action:** Make a new file `.claude/hooks/protect-config.sh` (remember you can use the `code` command if working in the codespace).
-
-**Action:** Copy/paste the following contents into the file and save it.
+**Action:** Create `.claude/hooks/protect-config.sh` (the `code` command works in the codespace) with these contents, and save it.
 
 ```
 #!/bin/bash
@@ -339,10 +344,7 @@ The `jq -r '.tool_input.file_path'` line pulls the target file path out of the J
 <br><br>
 
 ## 3: Make the Script Executable
-**What we're doing:** Setting the execute bit.
-**Why:** Claude Code runs the script as a process — it must be executable.
-
-**Action:**
+**Action:** Set the execute bit — Claude Code runs the script as a process:
 ```
 chmod +x .claude/hooks/protect-config.sh
 ```
@@ -351,12 +353,9 @@ chmod +x .claude/hooks/protect-config.sh
 <br><br>
 
 ## 4: Wire Up the Hooks in settings.json
-**What we're doing:** Registering two hooks in the project's settings file.
-**Why:** Hooks are configured under a `"hooks"` key in `.claude/settings.json`. Each entry names an *event* (PreToolUse, PostToolUse, etc.), a *matcher* that filters by tool name, and the *handler* to run.
+Hooks live under a `"hooks"` key in `.claude/settings.json`. Each entry names an *event* (PreToolUse, PostToolUse, etc.), a *matcher* filtering by tool name, and the *handler* to run.
 
-**Action:** Make a new file `.claude/settings.json`.
-
-**Action:** Copy/paste the following contents into the file and save it.
+**Action:** Create `.claude/settings.json` with these contents, and save it.
 
 ```
 {
@@ -388,9 +387,8 @@ chmod +x .claude/hooks/protect-config.sh
 }
 ```
 
-Two things to notice:
-- The matcher `Edit|Write` means "fire on either the Edit or the Write tool." `Bash` matches only the Bash tool.
-- The guard hook uses the newer *exec form* (`args: []`), which runs the script directly with no shell in between — recommended whenever you use a path placeholder like `${CLAUDE_PROJECT_DIR}`. The logger omits `args`, so it runs in *shell form*, which we need for the `>>` redirect.
+- The matcher `Edit|Write` fires on either tool; `Bash` matches only the Bash tool.
+- The guard uses the newer *exec form* (`args: []`), running the script directly with no shell — recommended with a path placeholder like `${CLAUDE_PROJECT_DIR}`. The logger omits `args` and so runs in *shell form*, which the `>>` redirect needs.
 
 ![The hooks settings file](./images/cc-se5.png?raw=true "The hooks settings file")
 
@@ -398,8 +396,7 @@ Two things to notice:
 <br><br>
 
 ## 5: Start Claude in Bypass Mode
-**What we're doing:** Starting Claude with permissions bypassed — on purpose.
-**Why:** This is the punchline of the lab: hooks fire at the *tool boundary*, outside of the permission system. Even with all permission prompts turned off, the hook still gets a veto.
+Hooks fire at the *tool boundary*, outside the permission system. Auto mode's classifier is a model making a judgment call; a hook is your code, and it keeps its veto even when every permission check is off.
 
 **Action:** In a terminal other than your original one, start Claude with the option or alias (if working in the codespace):
 ```
@@ -414,19 +411,16 @@ claude-yolo (if running in the codespace)
 <br><br>
 
 ## 6: Inspect the Hooks with /hooks
-**What we're doing:** Verifying Claude Code loaded our hooks.
-**Why:** The `/hooks` command opens a read-only browser of every configured hook — handy for checking what's active and which settings file it came from.
-
 **Action:** Type:
 ```
 /hooks
 ```
 
-You should see **PreToolUse** and **PostToolUse** each showing one configured hook, labeled with a `[command]` type and a `Project` source (meaning it came from `.claude/settings.json`).
+You should see **PreToolUse** and **PostToolUse** each showing one hook, with a `[command]` type and a `Project` source (from `.claude/settings.json`).
 
 ![The /hooks menu](./images/cc-se6.png?raw=true "The /hooks menu")
 
-Pick one and select it to see general details about how the hook works, then drill in another level to see the configured command.
+Select one to see how the hook works, then drill in another level to see the configured command.
 
 ![How the hook works](./images/cc-se8.png?raw=true "How the hook works")
 
@@ -436,15 +430,12 @@ Hit `Esc` several times to get back to the main Claude Code prompt.
 <br><br>
 
 ## 7: Try to Edit the Protected File
-**What we're doing:** Asking Claude to do the thing our policy forbids.
-**Why:** Time to watch the hook earn its keep.
-
 **Action:** Type:
 ```
 Add a connection_timeout setting to config.json using the Edit tool.
 ```
 
-Watch what happens: Claude attempts the edit, and the tool call is **blocked** before it touches the file. You'll see the hook's stderr message surfaced in the conversation — Claude reads it too.
+Claude attempts the edit; the tool call is **blocked** before it touches the file. The hook's stderr message surfaces in the conversation — Claude reads it too.
 
 ![Edit blocked by hook](./images/cc-se10.png?raw=true "Edit blocked by hook")
 
@@ -452,8 +443,7 @@ Watch what happens: Claude attempts the edit, and the tool call is **blocked** b
 <br><br>
 
 ## 8: Look at How Claude Reacts
-**What we're doing:** Observing what Claude does with the block message.
-**Why:** Exit code 2 doesn't just stop the tool call — the stderr text is fed back to Claude as feedback. Our message told it to suggest the change to the user instead, so a well-behaved Claude should explain the policy and show you the change it *would* have made.
+Exit code 2 also feeds the stderr text back to Claude; ours told it to suggest the change to the user instead.
 
 **Action:** Read Claude's response. Then verify the file is untouched — in your **original (plain) terminal**, not this Claude session:
 ```bash
@@ -462,16 +452,15 @@ cat config.json
 
 No `connection_timeout` — the file never changed, even in bypass-permissions mode.
 
-> **Why not `! cat config.json` here?** Claude Code auto-responds to in-session bash output, and in bypass mode it may try to *finish* the edit you asked for in step 7 — and since our matcher only guards `Edit|Write`, it could slip the change in via the **Bash** tool, which the hook doesn't block. Verifying from a plain terminal keeps Claude out of the loop so the file provably stays untouched.
+> **Why not `! cat config.json` here?** Claude Code auto-responds to in-session bash output, and in bypass mode it may *finish* the step 7 edit via the **Bash** tool, which our `Edit|Write` matcher doesn't block. A plain terminal keeps Claude out of the loop.
 
-> **Spot the loophole:** Our matcher only guards the `Edit|Write` tools. Claude could in principle modify the file through the Bash tool (`sed`, `echo >>`, etc.). Real policies often add a Bash matcher too, or use the `if` field with permission-rule syntax to narrow further. If Claude offers to work around the block, tell it no — and remember this when you design your own hooks.
+> **Spot the loophole:** the matcher only guards `Edit|Write`, so Claude could modify the file via Bash (`sed`, `echo >>`). Real policies add a Bash matcher too, or use the `if` field with permission-rule syntax. If Claude offers to work around the block, tell it no.
 
 ---
 <br><br>
 
 ## 9: Generate Some Bash Traffic
-**What we're doing:** Giving the PostToolUse logger something to record.
-**Why:** PostToolUse fires *after* a tool call succeeds — it can't block (the command already ran), but it's perfect for auditing, logging, and follow-up actions like auto-formatting.
+PostToolUse fires *after* a tool call succeeds — it can't block, but it's ideal for auditing, logging and follow-ups like auto-formatting.
 
 **Action:** Type:
 ```
@@ -484,9 +473,6 @@ Let Claude run its commands.
 <br><br>
 
 ## 10: Check the Audit Log
-**What we're doing:** Reading the log file our PostToolUse hook has been writing.
-**Why:** Proof that every Bash call went through our hook — no exceptions, no forgetting.
-
 **Action:** Type:
 ```
 ! cat .claude/bash-command-log.txt
@@ -494,7 +480,7 @@ Let Claude run its commands.
 
 (Heads-up: while typing a path that matches real files, Claude Code may show a subtle suggested-path line near the input — **while it's showing, *Enter* is silently ignored**. Press `Esc` once to clear it, then *Enter*.)
 
-You should see each command Claude ran, with its description. (You may even see your own `!` commands show up — they go through the Bash tool too.)
+You should see each command Claude ran, with its description. (Your own `!` commands appear too — they go through the Bash tool.)
 
 ![The bash command log](./images/cc-se11.png?raw=true "The bash command log")
 
@@ -502,16 +488,14 @@ You should see each command Claude ran, with its description. (You may even see 
 <br><br>
 
 ## 11: Prompt vs. Tool vs. Hook Constraints
-**What we're doing:** Placing hooks in the constraint toolbox you built in the intro course. (Reading only)
-**Why:** You now have three ways to say "don't do that" — and they are not equally strong.
+Four ways to say "don't do that," and they are not equally strong. (Reading only)
 
-Recall the intro course: a planner agent had a *prompt constraint* ("Do not write or modify files" — advisory, the model can drift), and a reviewer agent had a *tool constraint* (`disallowedTools: Write, Edit` — structural, but scoped to that one agent). Hooks are the third tier:
-
-- **Prompt constraint** — instructions in CLAUDE.md or an agent file. Flexible, but it's a request, not a guarantee.
+- **Prompt constraint** — CLAUDE.md or agent-file instructions: a request, not a guarantee.
 - **Tool constraint** — `disallowedTools` removes the tool entirely, for one agent.
-- **Hook** — your own code at the tool boundary, for *every* tool call in the session, with any logic you can script. Exit 2 is a hard no, even in bypass mode.
+- **Classifier** — in auto mode a second *model* judges each risky call: probabilistic, and a boundary stated in chat can be lost when `/compact` drops that message.
+- **Hook** — your code at the tool boundary, on *every* tool call. Exit 2 is a hard no, even in bypass mode.
 
-> **Going further:** Hooks can do much more than block: a hook can exit 0 and print JSON to make richer decisions (`permissionDecision: allow / deny / ask`), rewrite a tool's input before it runs, or inject context for Claude. There are also handler types beyond shell commands (`prompt`, `agent`, `http`, `mcp_tool`) and many more events — `SessionStart` for loading context when a session begins is a popular one. To temporarily switch everything off, set `"disableAllHooks": true` in settings. See the [hooks reference](https://code.claude.com/docs/en/hooks) for the full schema. In Lab 4 you'll meet the same PreToolUse idea again — written in Python, gating an unattended agent.
+> **Going further:** a hook can exit 0 and print JSON for richer decisions (`permissionDecision: allow / deny / ask`), rewrite a tool's input, or inject context. Handler types beyond shell commands: `prompt`, `agent`, `http`, `mcp_tool`; many more events exist (`SessionStart` is popular). `"disableAllHooks": true` switches everything off. Full schema: [hooks reference](https://code.claude.com/docs/en/hooks).
 
 ---
 <br><br>
@@ -526,12 +510,12 @@ exit
 
 ## Lab Summary
 ✅ You've successfully:
-- Created a PreToolUse hook that blocks edits to a protected file
-- Used exit code 2 + stderr to veto a tool call and explain why
-- Created a PostToolUse hook that logs every bash command
-- Verified configured hooks with the /hooks menu
-- Proved hooks fire even in bypass-permissions mode
-- Placed hooks in the constraint hierarchy: prompt → disallowedTools → hooks
+- Blocked edits to a protected file with a PreToolUse hook
+- Used exit 2 + stderr to veto a call and explain why
+- Logged every bash command with a PostToolUse hook
+- Verified hooks with `/hooks`
+- Proved hooks fire in bypass mode, outside auto mode's classifier
+- Placed hooks in the constraint hierarchy
 
 <br><br>
 ---
@@ -541,7 +525,7 @@ exit
 
 # Lab 3: Headless Mode & CI Automation
 ## Lab Purpose
-Use `claude -p` as a Unix-style building block — pipe data through it, get structured JSON out, loop over files — then author the GitHub Actions workflows that run the same engine in CI with `anthropics/claude-code-action@v1`. Estimated time: 10-12 minutes.
+Use `claude -p` as a Unix-style building block — pipe data through it, get JSON out, loop over files — then author the GitHub Actions workflows that run the same engine in CI with `anthropics/claude-code-action@v1`. Estimated time: 10-12 minutes.
 
 **NOTE: This whole lab runs in a regular terminal — no interactive Claude session needed.**
 
@@ -549,8 +533,7 @@ Use `claude -p` as a Unix-style building block — pipe data through it, get str
 <br><br>
 
 ## 1: Pipe Input Through Claude *(recap)*
-**What we're doing:** Sending stdin into a non-interactive Claude run.
-**Why:** `-p` (print) mode reads stdin, processes it, prints the result, and exits — the contract every pipeline tool follows. You saw one `-p` call in the intro course; today it becomes a building block.
+`-p` (print) mode reads stdin, processes it, prints the result, and exits.
 
 **Action:** In a terminal, run:
 ```bash
@@ -565,15 +548,14 @@ You get just the answer — no session UI, no prompts.
 <br><br>
 
 ## 2: Get Structured JSON Output
-**What we're doing:** Switching the output format from text to JSON.
-**Why:** Scripts can't parse prose reliably. JSON output gives you the result plus metadata: session ID, cost, turns, duration.
+JSON output gives you the result plus metadata: session ID, cost, turns, duration.
 
 **Action:** Run:
 ```bash
 claude -p "Summarize this project in one sentence" --output-format json
 ```
 
-Look at the raw JSON. Find the `result`, `session_id`, `total_cost_usd`, and `num_turns` fields.
+Find the `result`, `session_id`, `total_cost_usd`, and `num_turns` fields.
 
 ![json output](./images/cc-se31.png?raw=true "json output")
 
@@ -581,9 +563,6 @@ Look at the raw JSON. Find the `result`, `session_id`, `total_cost_usd`, and `nu
 <br><br>
 
 ## 3: Extract Fields with jq
-**What we're doing:** Pulling specific fields from the JSON payload.
-**Why:** This is how automation consumes Claude — take the field you need, ignore the rest.
-
 **Action:** Run:
 ```bash
 claude -p "How many tests are in app/test_app.py?" --output-format json | jq '{result: .result, cost: .total_cost_usd, turns: .num_turns}'
@@ -591,14 +570,13 @@ claude -p "How many tests are in app/test_app.py?" --output-format json | jq '{r
 
 ![jq extraction](./images/cc-se32.png?raw=true "jq extraction")
 
-**Note:** `--output-format json` also supports `--json-schema` to force output matching a schema you define — the structured result lands in a `structured_output` field. And `--output-format stream-json` emits events in real time for long-running automation.
+**Note:** `--output-format json` also supports `--json-schema`, forcing output to match a schema you define — the result lands in a `structured_output` field. `--output-format stream-json` emits events in real time for long-running automation.
 
 ---
 <br><br>
 
 ## 4: A Loop Instead of a Prompt
-**What we're doing:** Running Claude once per file inside a bash for-loop.
-**Why:** This is the core move of the automation half of this course. Yesterday you'd have prompted "summarize all the app files" and hoped. A loop gives you one bounded, repeatable call per item.
+A loop gives you one bounded, repeatable call per item.
 
 **Action:** Run:
 ```bash
@@ -609,7 +587,7 @@ for f in app/*.py; do
 done
 ```
 
-The `Summarizing $f...` line prints to your terminal so you can watch each pass; the summaries are redirected into `summaries.md`. Each pass is an independent headless run. (`>>` *appends* — delete `summaries.md` before re-running or entries pile up.)
+`Summarizing $f...` prints to your terminal; the summaries are redirected into `summaries.md`. Each pass is an independent headless run. (`>>` *appends* — delete `summaries.md` before re-running or entries pile up.)
 
 ![first loop](./images/cc-se36.png?raw=true "first loop")
 
@@ -617,9 +595,6 @@ The `Summarizing $f...` line prints to your terminal so you can watch each pass;
 <br><br>
 
 ## 5: Inspect the Loop's Output
-**What we're doing:** Checking what the loop produced.
-**Why:** Verifying automated output is a habit you'll need for everything else today.
-
 **Action:** Run:
 ```bash
 cat summaries.md
@@ -633,15 +608,18 @@ You should see a heading and a one-sentence summary for each `.py` file in `app/
 <br><br>
 
 ## 6: Let Headless Runs Make Changes
-**What we're doing:** Pre-approving actions so a headless run can write files without hanging.
-**Why:** `-p` mode has no human to click "Yes." Anything not pre-approved either aborts the run or gets denied — so automation must declare its permissions up front.
+`-p` mode has no human to click "Yes": anything not pre-approved aborts or is denied, so automation must declare its permissions up front.
+
+> **The August 2026 auto-mode default does not rescue you here.** Interactive sessions start in auto mode on Pro/Max/Team, but `claude -p` and the Agent SDK start in `default` — so pre-approving permissions stays mandatory for anything unattended.
 
 **Action:** Run:
 ```bash
 claude -p "Create a file named pipeline.txt containing the single word OK" --permission-mode acceptEdits
 ```
 
-Then verify with `cat pipeline.txt`. The `acceptEdits` mode auto-approves file writes; `--allowedTools "Bash,Read,Edit"` is the finer-grained alternative that pre-approves specific tools (and supports rules like `Bash(git diff *)`). The same idea returns in code form in Lab 4.
+Verify with `cat pipeline.txt`. `acceptEdits` auto-approves file writes; `--allowedTools "Bash,Read,Edit"` is the finer-grained alternative (and supports rules like `Bash(git diff *)`). The same idea returns in code in Lab 4.
+
+> **Two more CI flags.** `--permission-mode dontAsk` runs *only* what your `permissions.allow` rules and the read-only command set cover, denying the rest instead of prompting. `--bare` skips auto-discovery of hooks, skills, plugins, MCP servers and CLAUDE.md, making a CI run reproducible across machines.
 
 ![headless with accept edits](./images/cc-se38.png?raw=true "headless with accept edits")
 
@@ -649,8 +627,7 @@ Then verify with `cat pipeline.txt`. The `acceptEdits` mode auto-approves file w
 <br><br>
 
 ## 7: Create the Workflow Directory
-**What we're doing:** Moving from your terminal to CI — setting up the standard GitHub Actions location.
-**Why:** Everything you just did — headless run, pre-approved permissions, bounded turns — is exactly what `claude-code-action@v1` packages up to run on GitHub's runners. GitHub discovers workflows only in `.github/workflows/`.
+GitHub discovers workflows only in `.github/workflows/`.
 
 **Action:** Run:
 ```bash
@@ -661,10 +638,9 @@ mkdir -p .github/workflows
 <br><br>
 
 ## 8: Author the @claude Responder Workflow
-**What we're doing:** Writing a workflow where Claude responds to `@claude` mentions in issues and PR comments.
-**Why:** This is the canonical pattern: a teammate types `@claude fix the TypeError in the dashboard` in a PR comment, and Claude analyzes, implements, and pushes — on GitHub's runners, not your machine.
+The canonical pattern: a teammate comments `@claude fix the TypeError in the dashboard` on a PR, and Claude analyzes, implements and pushes on GitHub's runners.
 
-**Action:** Make a new file `.github/workflows/claude.yml` and copy/paste the following contents into it, then save:
+**Action:** Create `.github/workflows/claude.yml` with these contents, and save:
 
 ```yaml
 name: Claude Code
@@ -690,8 +666,7 @@ jobs:
 <br><br>
 
 ## 9: Author a Scheduled Automation Workflow
-**What we're doing:** Writing a second workflow that runs on a cron schedule with an explicit `prompt:`.
-**Why:** With a `prompt:`, the action auto-detects *automation mode* — it runs immediately on the trigger instead of waiting for a mention. This is your headless loop, at the CI level.
+With a `prompt:`, the action auto-detects *automation mode* — it runs immediately on the trigger instead of waiting for a mention.
 
 **Action:** Make a new file `.github/workflows/daily-report.yml` with:
 
@@ -713,7 +688,7 @@ jobs:
             --model sonnet
 ```
 
-**Save the file.** Note `claude_args`: it's a passthrough to the same CLI flags you used in steps 1-6 — the action is the same engine on a GitHub runner.
+**Save the file.** `claude_args` is a passthrough to the same CLI flags you used in steps 1-6.
 
 | In claude_args | You used it as |
 |---|---|
@@ -722,7 +697,7 @@ jobs:
 | `--model sonnet` | `/model` |
 | `--append-system-prompt "..."` | custom instructions per workflow |
 
-The action also respects your repo's CLAUDE.md — the context you built in Lab 1 works in CI too.
+The action also respects your repo's CLAUDE.md, so the Lab 1 context works in CI too.
 
 ![workflow file](./images/cc-se77.png?raw=true "workflow file")
 
@@ -730,9 +705,6 @@ The action also respects your repo's CLAUDE.md — the context you built in Lab 
 <br><br>
 
 ## 10: Have Headless Claude Review Your Workflow
-**What we're doing:** Using a headless run to check the CI file you just wrote.
-**Why:** Reinforces both skills at once — and catches authoring mistakes.
-
 **Action:** Run:
 ```bash
 cat .github/workflows/claude.yml | claude -p "Explain this GitHub Actions workflow: what triggers it, what the action does, what secrets it needs, and one risk to consider."
@@ -744,23 +716,22 @@ cat .github/workflows/claude.yml | claude -p "Explain this GitHub Actions workfl
 <br><br>
 
 ## 11: Know the Security Basics
-**What we're doing:** Reviewing the non-negotiables before anyone runs this for real. (Reading only)
-**Why:** CI agents act with real credentials on real repos.
+CI agents act with real credentials on real repos. (Reading only)
 
 - The API key comes **only** from `${{ secrets.ANTHROPIC_API_KEY }}` — never hardcoded.
-- The Claude GitHub App needs read/write on **Contents, Issues, Pull requests** — and nothing more.
+- The Claude GitHub App needs read/write on **Contents, Issues, Pull requests** and nothing more.
 - Bound every job: `--max-turns` in `claude_args` plus a workflow-level `timeout-minutes`.
-- Review Claude's PRs like any contributor's. CI runs are unattended runs.
+- Review Claude's PRs like any contributor's.
 
-> **Try it live later:** In a repo you own, run `claude` and type `/install-github-app` — it installs the Claude GitHub App and adds the `ANTHROPIC_API_KEY` secret. Commit `claude.yml`, open an issue, and comment `@claude suggest an improvement to the README`. (The workshop repo isn't yours, so the live loop is homework.)
+> **Try it live later:** in a repo you own, run `claude` and type `/install-github-app` — it installs the Claude GitHub App and adds the `ANTHROPIC_API_KEY` secret. Commit `claude.yml`, open an issue, and comment `@claude suggest an improvement to the README`. (The workshop repo isn't yours, so this is homework.)
 
 ## Lab Summary
 ✅ You've mastered:
-- Piping data through `claude -p` and structured output with `--output-format json` + jq
-- Writing a bash loop that runs Claude per file
+- Piping data through `claude -p`, with `--output-format json` + jq
+- A bash loop that runs Claude per file
 - Pre-approving permissions for unattended writes
-- Authoring an `@claude` responder workflow and a scheduled automation workflow with `claude-code-action@v1`
-- Mapping `claude_args` back to the CLI flags you already know
+- An `@claude` responder and a scheduled workflow with `claude-code-action@v1`
+- Mapping `claude_args` to the CLI flags you know
 - The CI security baseline
 
 <br><br>
@@ -771,9 +742,9 @@ cat .github/workflows/claude.yml | claude -p "Explain this GitHub Actions workfl
 
 # Lab 4: Agent SDK: Programmatic and Unattended Loops
 ## Lab Purpose
-So far you've run Claude from the terminal. Now you'll run the **same Claude agent from a small Python program** — first as a read-only explorer, then as an *unattended* agent that does real work safely with nobody watching. Estimated time: 10-12 minutes.
+Run the **same Claude agent from a small Python program** — first read-only, then *unattended*, doing real work safely with nobody watching. Estimated time: 10-12 minutes.
 
-> **The whole idea in one line:** the `claude` command is a finished app; the **Agent SDK** is that same engine as a Python library. Calling `query()` in Python does what `claude -p "..."` did in Lab 3 — and because you're now in code, you set Claude's permissions *in code*, which is what lets it run safely when no human is there to click "approve."
+> **In one line:** the `claude` command is a finished app; the **Agent SDK** is that same engine as a Python library. `query()` does what `claude -p "..."` did in Lab 3, and you set permissions *in code* — which is what lets it run safely with nobody there to click "approve."
 
 > **How the merge steps work.** A few steps use a **diff-merge**. You open a *skeleton* — a working file with its key lines replaced by a placeholder — next to the *finished* version, and copy the finished lines in:
 > - Run `code -d extra/<finished> sdk/<skeleton>` to open the two files **side by side**, differences highlighted. The finished file (`extra/…`) is on the **left**; your skeleton (`sdk/…`) is on the **right**.
@@ -786,8 +757,7 @@ So far you've run Claude from the terminal. Now you'll run the **same Claude age
 <br><br>
 
 ## 1: Install the Agent SDK (You can skip this step if running in a Codespace.)
-**What we're doing:** Installing the Python package.
-**Why:** The SDK gives you the same tools, agent loop, and context management that power Claude Code — as a library. It drives the bundled CLI under the hood, so your existing login carries over with no extra auth.
+The SDK drives the bundled CLI under the hood, so your existing login carries over.
 
 **Action:** In a terminal, run:
 ```bash
@@ -800,15 +770,12 @@ python3 -m pip install claude-agent-sdk
 <br><br>
 
 ## 2: View the Skeleton
-**What we're doing:** Opening `sdk/agent_loop.py` to see what's there before you merge.
-**Why:** So the diff in the next step is small and readable — you'll know exactly what's blank and what you're adding.
-
 **Action:** Open the skeleton:
 ```bash
 code sdk/agent_loop.py
 ```
 
-At the top, the `import` block already names the SDK pieces you'll use — `query`, `ClaudeAgentOptions`, `AssistantMessage`, `ResultMessage`. The body of `run_agent()`, though, is just a placeholder comment and a `raise` that stops the program until you merge. The two things that make it an *agent* — the **options** (which tools are pre-approved, plus a turn cap) and the **message loop** (reading what `query()` streams back) — are exactly what you'll add next. *Note: this file is incomplete — we'll merge in the working code in the next step.*
+The `import` block already names the SDK pieces you'll use — `query`, `ClaudeAgentOptions`, `AssistantMessage`, `ResultMessage`. The body of `run_agent()` is a placeholder and a `raise` that stops the program until you merge. You'll add the **options** (pre-approved tools plus a turn cap) and the **message loop**.
 
 ![skeleton view](./images/cc-se58.png?raw=true "skeleton view")
 
@@ -816,9 +783,6 @@ At the top, the `import` block already names the SDK pieces you'll use — `quer
 <br><br>
 
 ## 3: Diff, Merge, and Map It to the CLI
-**What we're doing:** Comparing the skeleton against the completed version, merging it in, then reading what you just added.
-**Why:** Seeing only the *difference* highlights exactly what turns a plain script into an agent program — and once it's merged, you'll see nothing in it is new: it's the CLI you've been using, with Python names.
-
 **Action:** Run:
 ```bash
 code -d extra/agent_loop.txt sdk/agent_loop.py
@@ -828,7 +792,7 @@ The finished file (`extra/agent_loop.txt`) is on the **left**; your skeleton (`s
 
 > **If the next step still says "still the skeleton":** a line didn't merge or the file wasn't saved. Re-open the diff, confirm **no** highlight remains, then save again.
 
-Now look at the merged `run_agent()` body — every piece maps to something you've already used:
+Every piece of the merged `run_agent()` maps to something you've already used:
 
 | SDK piece (now in your file) | CLI equivalent you've used |
 |---|---|
@@ -837,7 +801,7 @@ Now look at the merged `run_agent()` body — every piece maps to something you'
 | `ClaudeAgentOptions(max_turns=...)` | `--max-turns` / `claude_args` (Lab 3) |
 | iterating `AssistantMessage` / `ToolUseBlock` / `ResultMessage` | `--output-format stream-json` events |
 
-`query()` returns an async iterator — your `async for` loop receives each message as the agent works. The loop prints two kinds of activity as it goes: `[claude]` lines for Claude's text and `[tool]` lines for each tool call it makes (a `ToolUseBlock`, carrying the tool's `name` and `input`). It ends with a `ResultMessage` of stats.
+`query()` returns an async iterator; your `async for` loop prints `[claude]` lines for text and `[tool]` lines for each call (a `ToolUseBlock` carrying the tool's `name` and `input`), ending with a `ResultMessage` of stats.
 
 ![diff merge](./images/cc-se59.png?raw=true "diff merge")
 
@@ -845,15 +809,12 @@ Now look at the merged `run_agent()` body — every piece maps to something you'
 <br><br>
 
 ## 4: Run Your Agent
-**What we're doing:** Executing the program.
-**Why:** First proof that an agent loop runs under *your program's* control.
-
 **Action:** Run:
 ```bash
 python3 sdk/agent_loop.py "What files are in the sdk directory? Answer in one sentence."
 ```
 
-You'll see `[claude]` lines (Claude's text) and likely one or more `[tool]` lines (each tool it calls), then the `ResultMessage` stats: turns used, duration, final result.
+You'll see `[claude]` lines and likely one or more `[tool]` lines, then the `ResultMessage` stats: turns used, duration, final result.
 
 ![sdk run](./images/cc-se60.png?raw=true "sdk run")
 
@@ -861,14 +822,11 @@ You'll see `[claude]` lines (Claude's text) and likely one or more `[tool]` line
 <br><br>
 
 ## 5: Force Multiple Turns, Then Try to Write
-**What we're doing:** Giving the agent a tool-using prompt, then a prompt it can't fulfill.
-**Why:** To see the *loop* part of "agent loop" — and to see what `allowed_tools=["Read","Glob","Grep"]` quietly prevents.
-
 **Action:** Run a prompt that forces tool use:
 ```bash
 python3 sdk/agent_loop.py "Find every TODO comment in the .py files under sdk/ and mcpserver/ and list them"
 ```
-Watch the `[tool]` lines: the agent calls a read-only tool (like `Glob` to find the `.py` files, then `Grep` to scan them), gets the results back, and only then answers. Each `[tool]` line is one trip around the loop — that back-and-forth is the *loop* in "agent loop," and **Turns used** counts those trips.
+Watch the `[tool]` lines: the agent calls a read-only tool (`Glob`, then `Grep`), gets results back, and only then answers. Each `[tool]` line is one trip around the loop; **Turns used** counts those trips.
 
 ![sdk run](./images/cc-se61.png?raw=true "sdk run")
 
@@ -876,7 +834,7 @@ Now try to make it write:
 ```bash
 python3 sdk/agent_loop.py "Create a file named sdk_test.txt containing hello"
 ```
-The write isn't blocked — it just isn't *pre-approved*, so with no human attached it can't proceed. Confirm nothing was created: `ls sdk_test.txt`. Next we do this on purpose, safely.
+The write isn't blocked — it just isn't *pre-approved*, so with no human attached it can't proceed. Confirm nothing was created: `ls sdk_test.txt`.
 
 ![sdk run](./images/cc-se62.png?raw=true "sdk run")
 
@@ -884,18 +842,21 @@ The write isn't blocked — it just isn't *pre-approved*, so with no human attac
 <br><br>
 
 ## 6: View the Unattended Skeleton and How It Gates Every Tool
-**What we're doing:** Reading `sdk/auto_agent.py` and the one place every tool call must pass through.
-**Why:** In the CLI, an undecided tool call means *ask the human*. Unattended, there is no human — so your code must decide, and it must see **every** call, including ones the CLI would otherwise wave through.
+In the CLI an undecided tool call means *ask the human*. Unattended there is no human, so your code must decide — and must see **every** call.
 
 **Action:** Open it:
 ```bash
 code sdk/auto_agent.py
 ```
-Remember the `[tool]` lines the read-only agent printed? Each one is a decision point. To make that decision yourself on **every** call, the gate is a **PreToolUse hook** — `gatekeeper()` — which the CLI runs *before* each tool executes and which returns a `permissionDecision` of `"allow"` or `"deny"`. This is Lab 2's PreToolUse idea again — in Python this time, and *inside your own program*.
+The gate is a **PreToolUse hook** — `gatekeeper()` — run by the CLI *before* each tool executes, returning a `permissionDecision` of `"allow"` or `"deny"`. Lab 2's idea, in Python, inside your own program.
 
 ![skeleton view](./images/cc-se70.png?raw=true "skeleton view")
 
-> **Why a hook, and not `can_use_tool`?** `ClaudeAgentOptions` also accepts a `can_use_tool` callback, and it's tempting to treat that as the gatekeeper. But the CLI only calls `can_use_tool` for tools that resolve to **"ask"** — it is skipped for anything already permitted by `allowed_tools`, `permission_mode`, or your Claude settings. So a destructive command in an environment that already trusts `Bash` would sail right past it. A **PreToolUse hook fires on every call, no exceptions** — which is exactly what an unattended safety gate needs.
+> **Note:** SDK sessions start in `default` mode whatever your interactive CLI default is — the auto-mode default does not extend to programs you write. Permissions in code are not optional here.
+
+> **What the SDK *does* pick up from disk.** By default, the same filesystem configuration the CLI reads: user, project and local settings, `CLAUDE.md`, and the skills, agents and commands in `.claude/` (omitting `setting_sources` equals `setting_sources=["user", "project", "local"]`). So your Lab 2 hook is still armed — it loads here and fires alongside the Python `gatekeeper()`. For an isolated agent, `setting_sources=[]` limits it to what you configure in code; Anthropic recommends that for multi-tenant deployments, since managed policy, `~/.claude.json` and auto-memory are read regardless.
+
+> **Why a hook, and not `can_use_tool`?** `ClaudeAgentOptions` accepts a `can_use_tool` callback, but the CLI calls it only for tools that resolve to **"ask"** — it is skipped for anything already permitted by `allowed_tools`, `permission_mode` or your settings, so a destructive command in an environment that trusts `Bash` sails past it. A **PreToolUse hook fires on every call, no exceptions.**
 
 The skeleton also provides a `prompt_stream()` generator: streaming the prompt is what lets the hook run interactively as the agent works.
 
@@ -903,9 +864,6 @@ The skeleton also provides a `prompt_stream()` generator: streaming the prompt i
 <br><br>
 
 ## 7: Diff and Merge the Unattended Agent
-**What we're doing:** Merging the completed implementation.
-**Why:** The diff shows exactly what you're adding: the gatekeeper logic and the options/result handling.
-
 **Action:** Run the diff below. The finished file (`extra/auto_agent.txt`) is on the **left**; your skeleton (`sdk/auto_agent.py`) is on the **right**. This time there are **two highlighted regions** — the `gatekeeper()` body and the `main()` body. Merge **both** from the left into the right, **save the right file** (the skeleton), and close:
 ```bash
 code -d extra/auto_agent.txt sdk/auto_agent.py
@@ -917,14 +875,11 @@ code -d extra/auto_agent.txt sdk/auto_agent.py
 <br><br>
 
 ## 8: Run It Unattended and Inspect the Output
-**What we're doing:** Starting the agent and not touching the keyboard, then checking its work.
-**Why:** The whole point — start it, take your hands off, then trust-but-verify.
-
 **Action:** Run:
 ```bash
 python3 sdk/auto_agent.py
 ```
-Watch the `[gatekeeper] allowing: ...` lines (one per tool the agent uses), then the final turn count. Check the product:
+Watch the `[gatekeeper] allowing: ...` lines (one per tool used), then the final turn count. Check the product:
 ```bash
 cat agent_report.md
 ```
@@ -936,9 +891,6 @@ You should see every `.py` file in `app/` listed with a one-line description.
 <br><br>
 
 ## 9: Trigger the Deny Path
-**What we're doing:** Making the gatekeeper say no.
-**Why:** Allow-paths are easy. The deny-path is what makes unattended safe.
-
 **Action:** Edit the `TASK` string in `sdk/auto_agent.py` to:
 ```python
 TASK = "Use a Bash rm command to delete agent_report.md. Then say DONE."
@@ -948,7 +900,7 @@ TASK = "Use a Bash rm command to delete agent_report.md. Then say DONE."
 ```
   [gatekeeper] DENIED: Bash -> 'rm agent_report.md'
 ```
-Claude still prints `DONE` because the task told it to — so **`Result: DONE` proves nothing**. What proves the block worked is the deny line *and* the file still being there:
+Claude still prints `DONE` because the task told it to, so **`Result: DONE` proves nothing**. The proof is the deny line *and* the file still being there:
 ```bash
 ls agent_report.md
 ```
@@ -962,8 +914,7 @@ It should still exist.
 <br><br>
 
 ## 10: Connect It Back to the CLI — and Peek at What's Next
-**What we're doing:** Confirming this is the same loop, not a lookalike.
-**Why:** One mental model for everything: the CLI, the SDK, and the GitHub Action from Lab 3 all run this loop.
+The CLI, the SDK and Lab 3's GitHub Action all run this same loop.
 
 **Action:** Run the read-only program's CLI equivalent and compare:
 ```bash
@@ -971,7 +922,7 @@ claude -p "What files are in the sdk directory? Answer in one sentence." --outpu
 ```
 The JSON fields mirror the `ResultMessage` attributes your program printed. Same loop, different driver.
 
-> **Going further — memory (beta):** the Agent SDK also offers a *memory* capability (beta) that lets an agent persist what it learns across runs — so tomorrow's run of `auto_agent.py` could remember what yesterday's discovered, instead of starting cold. It's evolving quickly; see the [Agent SDK docs](https://docs.claude.com/en/api/agent-sdk/overview) for the current API before relying on it.
+> **Going further — memory across runs:** Lab 1's **auto-memory** (`~/.claude/projects/<project>/memory/`) loads into the SDK's system prompt at session start, so tomorrow's `auto_agent.py` run can pick up what yesterday's discovered. Catch: it records memories with the ordinary `Write` and `Edit` tools, so if `allowed_tools` omits `Write` it silently can't save. Auto-memory loads regardless of `setting_sources`; disable with `autoMemoryEnabled: false` or `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`. See the [Agent SDK docs](https://code.claude.com/docs/en/agent-sdk/overview).
 
 ---
 <br><br>
@@ -979,10 +930,11 @@ The JSON fields mirror the `ResultMessage` attributes your program printed. Same
 ## Lab Summary
 ✅ You've built and exercised:
 - A read-only `query()` loop merged from skeleton to working program
-- An unattended agent gated by a PreToolUse hook that decides every tool call, plus `allowed_tools` and a `max_turns` cap
-- Why `can_use_tool` is not a universal gate (it only sees "ask" calls) and a PreToolUse hook is
+- An unattended agent gated by a PreToolUse hook, plus `allowed_tools` and `max_turns`
+- Why `can_use_tool` is not a universal gate (it only sees "ask" calls)
 - The deny path — blocking a destructive command programmatically
-- The CLI-to-SDK mapping: same agent loop, programmatic driver — and a pointer to SDK memory (beta)
+- The CLI-to-SDK mapping: same loop, programmatic driver
+- That the SDK loads `.claude/` config by default; `setting_sources=[]` is the isolation switch
 
 <br><br>
 ---
@@ -992,31 +944,27 @@ The JSON fields mirror the `ResultMessage` attributes your program printed. Same
 
 # Lab 5: Capstone: Build a Custom MCP Server
 ## Lab Purpose
-You've *used* MCP servers; now you'll **build one**. You'll complete a Python FastMCP server that exposes three "project health" tools for this repo, register it with Claude Code at project scope, and drive it from natural-language prompts — closing the loop from MCP consumer to MCP producer. Estimated time: 10-12 minutes.
+You've *used* MCP servers; now **build one**. Complete a Python FastMCP server exposing three "project health" tools, register it at project scope, and drive it from natural-language prompts. Estimated time: 10-12 minutes.
 
-> **Quick MCP recap (from the intro course):** an MCP server is a process Claude Code talks to over stdin/stdout (or HTTP), exposing *tools* Claude can call. You add one with `claude mcp add <name> -- <command>`, inspect it with `/mcp`, and its tools show up named `mcp__<server>__<tool>`. Today the server is yours.
+> **Quick MCP recap (from the intro course):** an MCP server is a process Claude Code talks to over stdin/stdout (or HTTP), exposing *tools* Claude can call. Add one with `claude mcp add <name> -- <command>`, inspect it with `/mcp`; its tools are named `mcp__<server>__<tool>`. Today the server is yours.
 
 ---
 <br><br>
 
 ## 1: Tour the Server Skeleton
-**What we're doing:** Reading `mcpserver/project_server.py` before completing it.
-**Why:** FastMCP makes a server out of ordinary Python functions: decorate a function with `@mcp.tool()`, and its **docstring and type hints become the tool's documentation and input schema** — that's literally what Claude reads when deciding which tool to call. Good docstrings are not a nicety here; they're the interface.
+FastMCP makes a server out of ordinary Python functions: decorate one with `@mcp.tool()` and its **docstring and type hints become the tool's documentation and input schema** — what Claude reads when choosing a tool.
 
 **Action:** Open the skeleton:
 ```bash
 code mcpserver/project_server.py
 ```
 
-Note the pieces already in place: the `FastMCP("project-health")` instance (that name becomes the `mcp__project-health__...` prefix), the `ROOT` path resolution, and the `mcp.run()` call at the bottom that starts the stdio transport. The three tools are missing — that's your merge. *Note: this file is incomplete — we'll merge in the working code shortly.*
+Already in place: the `FastMCP("project-health")` instance (that name becomes the `mcp__project-health__...` prefix), the `ROOT` path resolution, and the `mcp.run()` call that starts the stdio transport. The three tools are missing — that's your merge.
 
 ---
 <br><br>
 
 ## 2: Prove It's Still the Skeleton
-**What we're doing:** Running the incomplete file.
-**Why:** Same pattern as Lab 4 — the skeleton tells you it isn't finished, so there's never any mystery about whether the merge landed.
-
 **Action:** Run:
 ```bash
 python3 mcpserver/project_server.py
@@ -1028,8 +976,7 @@ You should see the *"still the skeleton"* message and the program stops.
 <br><br>
 
 ## 3: Diff-Merge the Three Tools
-**What we're doing:** Merging the finished implementation from `extra/project_server.txt`.
-**Why:** The diff is exactly the three `@mcp.tool()` functions — the entire "business logic" of your server:
+The diff is exactly the three `@mcp.tool()` functions:
 
 - `run_tests()` — runs `app/test_app.py` and returns the PASS/FAIL output plus exit code
 - `count_todos()` — counts TODO/FIXME comments per source file
@@ -1040,9 +987,9 @@ You should see the *"still the skeleton"* message and the program stops.
 code -d extra/project_server.txt mcpserver/project_server.py
 ```
 
-The finished file is on the **left**; your skeleton is on the **right**. There is **one highlighted region** — copy the left side over the right so nothing remains highlighted, **save the right file** (Cmd/Ctrl+S), and close the diff tab.
+The finished file is on the **left**; your skeleton is on the **right**. There is **one highlighted region** — copy left over right so nothing remains highlighted, **save the right file** (Cmd/Ctrl+S), and close the diff tab.
 
-As you merge, read the docstrings you're adding — each one tells Claude *when* to reach for that tool ("Use this to find out whether the to-do API currently meets its contract...").
+As you merge, read the docstrings — each tells Claude *when* to reach for that tool ("Use this to find out whether the to-do API currently meets its contract...").
 
 ![diff merge server](./images/ccadv4.png?raw=true "diff merge server")
 
@@ -1050,22 +997,20 @@ As you merge, read the docstrings you're adding — each one tells Claude *when*
 <br><br>
 
 ## 4: Start It Once by Hand
-**What we're doing:** Running the completed server directly.
-**Why:** To learn what "success" looks like for a stdio server: **silence**. It starts and waits for a client to speak JSON-RPC on stdin — no banner, no output.
+"Success" for a stdio server is **silence**: it waits for a client to speak JSON-RPC on stdin — no banner, no output.
 
 **Action:** Run:
 ```bash
 python3 mcpserver/project_server.py
 ```
 
-Nothing appears — that's correct: it's waiting for a client. (If you see the skeleton message instead, the merge didn't save.) Stop it with `Ctrl+C`. From now on, Claude Code will start and stop this process for you.
+Nothing appears — correct. (If you see the skeleton message, the merge didn't save.) Stop it with `Ctrl+C`. From now on Claude Code starts and stops this process for you.
 
 ---
 <br><br>
 
 ## 5: Register It at Project Scope
-**What we're doing:** Adding your server to Claude Code so teammates get it too.
-**Why:** Project scope writes the config to `.mcp.json` in the repo root — commit that file and everyone who clones the project gets your server. (The `--` separates Claude's options from the server's own command line.)
+Project scope writes the config to `.mcp.json` in the repo root — commit it and everyone who clones the project gets your server. (The `--` separates Claude's options from the server's command line.)
 
 **Action:** Run:
 ```bash
@@ -1085,15 +1030,14 @@ You'll see the server entry with its `command` and `args` — plain JSON, no sec
 <br><br>
 
 ## 6: Health-Check the Connection
-**What we're doing:** Listing configured servers with a live connection test.
-**Why:** `claude mcp list` actually starts each server and reports whether it connects — your first diagnostic stop when MCP misbehaves.
+`claude mcp list` actually starts each server and reports whether it connects — your first diagnostic stop.
 
 **Action:** Run:
 ```bash
 claude mcp list
 ```
 
-You should see **project-health** with a **✓ Connected** status. If it fails, run the server by hand (step 4) and read the error — with your own server, *you* are now the maintainer.
+At **project scope** (`.mcp.json`) it shows as **⏸ Pending approval (run `claude` to approve)** — project-scoped servers stay unapproved until you accept them in a session, which you'll do next. (At *local* scope you'd see **✓ Connected**.) If you see a connection *error*, run the server by hand (step 4) and read the message — with your own server, *you* are the maintainer.
 
 ![mcp list](./images/cc-se13.png?raw=true "mcp list")
 
@@ -1101,8 +1045,7 @@ You should see **project-health** with a **✓ Connected** status. If it fails, 
 <br><br>
 
 ## 7: Start Claude and Approve Your Server
-**What we're doing:** Starting a session that loads the project-scoped server.
-**Why:** Because `.mcp.json` can arrive in a repo from *anyone*, Claude Code asks you to approve project-scoped servers before it will run them — a safety gate teammates will see the first time they open your repo.
+Because `.mcp.json` can arrive in a repo from *anyone*, Claude Code asks you to approve project-scoped servers before it will run them.
 
 **Action:** Start Claude (*don't use* bypass mode here):
 ```bash
@@ -1117,15 +1060,12 @@ When prompted to use/approve the MCP server(s) from `.mcp.json`, approve them.
 <br><br>
 
 ## 8: Inspect It with /mcp
-**What we're doing:** Browsing your own server's tools from inside the session.
-**Why:** `/mcp` is the in-session control panel — and this time everything it shows is code you merged.
-
 **Action:** Type:
 ```
 /mcp
 ```
 
-Hit *Enter*, select the **project-health** server, and browse its three tools. Select one — the description you see is the docstring you merged in step 3, and the (empty) input schema comes from the function signature.
+Hit *Enter*, select the **project-health** server and browse its three tools. Select one — the description is the docstring you merged in step 3; the (empty) input schema comes from the function signature.
 
 ![mcp panel](./images/ccadv5.png?raw=true "mcp panel")
 
@@ -1135,15 +1075,12 @@ Use `Esc` to get back to the main prompt.
 <br><br>
 
 ## 9: Drive the Server: Run the Test Suite
-**What we're doing:** Letting Claude call your `run_tests` tool.
-**Why:** The payoff — a natural-language request routed through *your* code.
-
 **Action:** Type:
 ```
 Use the project-health server to run the test suite and summarize what's failing and why.
 ```
 
-Approve the tool use. Claude calls `mcp__project-health__run_tests`, gets your captured test output back, and explains the four contract violations — the same ones your `/triage` command found in Lab 1, now surfaced through a tool you built.
+Approve the tool use. Claude calls `mcp__project-health__run_tests`, gets your captured test output back, and explains the four contract violations — the ones `/triage` found in Lab 1, now through a tool you built.
 
 ![run tests tool](./images/ccadv6.png?raw=true "run tests tool")
 
@@ -1151,9 +1088,6 @@ Approve the tool use. Claude calls `mcp__project-health__run_tests`, gets your c
 <br><br>
 
 ## 10: Drive the Server: Full Health Report
-**What we're doing:** Combining multiple of your tools in one request.
-**Why:** To watch Claude compose your tools — deciding on its own which to call and in what order.
-
 **Action:** Type:
 ```
 Using the project-health tools, give me a one-paragraph health report on this repo: test status, TODO count, and overall size.
@@ -1161,7 +1095,7 @@ Using the project-health tools, give me a one-paragraph health report on this re
 
 You should see calls to your tools (watch for the `mcp__project-health__...` names), then a synthesized report.
 
-> **Tie-back to Lab 2:** those full tool names are exactly what a hook matcher can target — `"matcher": "mcp__project-health__.*"` would let a PreToolUse hook govern *your own server's* tools the same way it governed Edit/Write.
+> **Tie-back to Lab 2:** those full tool names are what a hook matcher targets — `"matcher": "mcp__project-health__.*"` lets a PreToolUse hook govern *your own server's* tools the way it governed Edit/Write.
 
 ![health report](./images/ccadv7.png?raw=true "health report")
 
@@ -1169,13 +1103,12 @@ You should see calls to your tools (watch for the `mcp__project-health__...` nam
 <br><br>
 
 ## 11: Where to Take It
-**What we're doing:** Mapping your capstone server to real-world use. (Reading only)
-**Why:** Everything beyond this is more of the same pattern.
+Everything beyond this is more of the same pattern. (Reading only)
 
-- **More tools:** anything a Python function can do — query a database, call an internal API, read a wiki — becomes a Claude tool with one decorator and a good docstring.
-- **Arguments:** add typed parameters to the function (`def run_tests(pattern: str) -> str:`) and FastMCP builds the input schema automatically.
-- **Beyond stdio:** the same server code can serve HTTP for remote/team use (`claude mcp add --transport http <url>`), which is how the connector directories you may have seen in Claude apps work under the hood.
-- **Distribution:** `.mcp.json` in the repo (done!), or package it with a plugin for one-command team install — the same "team kit" idea from the intro course.
+- **More tools:** anything a Python function can do — query a database, call an internal API, read a wiki — becomes a tool with one decorator and a good docstring.
+- **Arguments:** add typed parameters (`def run_tests(pattern: str) -> str:`); FastMCP builds the input schema.
+- **Beyond stdio:** the same code can serve HTTP (`claude mcp add --transport http <url>`).
+- **Distribution:** `.mcp.json` in the repo (done!), or package it with a plugin for one-command team install.
 
 ---
 <br><br>
@@ -1193,10 +1126,10 @@ claude mcp remove project-health
 ✅ In the capstone you've:
 - Completed a FastMCP server: three `@mcp.tool()` functions whose docstrings are the tool documentation
 - Learned the stdio contract (silence = waiting for a client)
-- Registered your server at project scope and read the shareable `.mcp.json`
-- Approved and inspected it with `/mcp` — seeing your own docstrings as tool descriptions
-- Driven it from natural language, single-tool and multi-tool
-- Connected the full picture: commands (Lab 1) → hooks (Lab 2) → headless/CI (Lab 3) → SDK (Lab 4) → your own MCP server (Lab 5)
+- Registered it at project scope and read the shareable `.mcp.json`
+- Approved and inspected it with `/mcp`
+- Driven it from natural language, single- and multi-tool
+- Connected the picture: commands → hooks → headless/CI → SDK → your own MCP server
 
 <br><br>
 ---

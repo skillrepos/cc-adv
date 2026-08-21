@@ -211,3 +211,24 @@ __marimo__/
 *.potx
 # PowerPoint lock/temp files
 ~$*.pptx
+
+# TechUpSkills course-repo conventions
+# (*.pptx already ignored above; repeated here to keep the block intact/portable)
+*.pptx
+*.pptm
+*.potx
+*.ppt
+*[qQ][aA]*.md
+*.md
+!README.md
+!README-Codespace.md
+!LICENSE.md
+!labs.md
+!STARTUP.md
+# cc-adv also tracks these .md files -- allow-listed so the rule matches reality
+!CHANGELOG.md
+!HANDOFF.md
+!description.md
+!outline.md
+!.github/copilot-instructions.md
+_*/
