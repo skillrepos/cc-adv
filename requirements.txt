@@ -9,4 +9,14 @@
 
 flask>=3.0            # Labs 1, 3, 5 — the to-do API used as the analysis target
 claude-agent-sdk      # Lab 4 — the Claude Agent SDK
-mcp>=1.2              # Lab 5 — the Python MCP SDK (FastMCP) for the capstone server
+
+# Lab 5 — the Python MCP SDK (FastMCP) for the capstone server.
+# PINNED BELOW 2.0 ON PURPOSE: mcp 2.0 renamed FastMCP to MCPServer and deleted
+# mcp.server.fastmcp entirely, with no compatibility shim. Without this pin every
+# step of Lab 5 dies on ModuleNotFoundError. Last 1.x release is 1.29.0.
+mcp>=1.2,<2
+
+# Pulled in by mcp; pinned here on purpose. pydantic-settings 2.13+ emits an
+# IncompleteFieldDefinitionWarning about mcp's 'lifespan' field, which spoils
+# Lab 5 step 4 — where a silent start is the success signal.
+pydantic-settings<2.13

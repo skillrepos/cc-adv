@@ -96,11 +96,11 @@ You'll see a welcome message and some update information.
 ```
 /model
 ```
-In the list that comes up, type "2" or use the arrow keys to move the pointer to "2" and hit *Enter*. Also use the left/right arrow keys to change the effort to *Medium effort*.
+In the list that comes up, use the up/down arrow keys to move the pointer to **Sonnet** and hit *Enter*. **Pick it by name, not by number** — the menu order shifts as models are added, and position "2" is currently an *Opus* entry, not Sonnet. Also use the **left/right** arrow keys to change the effort to *Medium effort*.
 
 ![login](./images/ccode209.png?raw=true "login")
 
-You should see an indicator that the model was set to *Sonnet* with *medium* effort.
+You should see an indicator that the model was set to a *Sonnet* model with *medium* effort.
 
 <br><br>
 

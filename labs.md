@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — custom commands, hooks, CI automation, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.10 - 08/21/26
+## Revision 1.11 - 08/21/26
 
 <br><br>
 
@@ -15,7 +15,7 @@
 > ```
 > /model
 > ```
-> In the list that comes up, use the up/down arrow keys to move the pointer to *Sonnet* and hit *Enter*. **Select by name, not by number** — the menu order shifts as models are added (the list carries Opus 5 and, on some accounts, Fable 5). Each row also shows that model's price per million tokens. Also use the **left/right** arrow keys to set the **effort level** to *medium* (it defaults to *high*).
+> In the list that comes up, use the up/down arrow keys to move the pointer to *Sonnet* and hit *Enter*. **Select by name, not by number** — the menu order shifts as models are added (the list carries Opus 5 and, on some accounts, Fable 5 — on a Max account today *Sonnet* sits at position **4**, behind two Opus entries). The picker no longer prints per-model prices; the ladder below has them. Also use the **left/right** arrow keys to set the **effort level** to *medium* (it defaults to *high*).
 >
 > ![set model](./images/ccode209.png?raw=true "set model")
 >
@@ -25,7 +25,7 @@
 >
 <br><br>
 
-**NOTE:** This course assumes you've completed the introductory Claude Code workshop (or equivalent). Steps that exercise something from that course are marked *(recap)* and kept quick. Since **August 14, 2026** your sessions start in **auto mode** on Pro, Max, and Team plans, so most permission prompts are already gone — a background classifier approves routine actions and stops for risky ones. Where a lab says it's OK, `claude --dangerously-skip-permissions` (alias `claude-yolo` in the codespace) removes the remaining checks as well.
+**NOTE:** This course assumes you've completed the introductory Claude Code workshop (or equivalent). Steps that exercise something from that course are marked *(recap)* and kept quick. Since **August 14, 2026** your sessions normally start in **auto mode** on Pro, Max, and Team plans, so most permission prompts are already gone — a background classifier approves routine actions and stops for risky ones. The bottom-left of the prompt tells you which mode you're in. Your **first** session after a fresh install — a brand-new Codespace counts — can start in **manual** whatever your plan; later ones pick up auto. Steps that differ between the two say so. Where a lab says it's OK, `claude --dangerously-skip-permissions` (alias `claude-yolo` in the codespace) removes the remaining checks as well.
 
 <br><br>
 
@@ -78,7 +78,7 @@ One fact, two homes: a shared rule in CLAUDE.md (committed, repo-wide) and a per
 Add this standing rule to CLAUDE.md: The test suite is run with python3 app/test_app.py. Never edit app/test_app.py - it defines the correct contract.
 ```
 
-Approve the edit and confirm the rule landed in `CLAUDE.md`.
+In **manual** mode, approve the edit; in **auto** mode (the default) it just lands. Either way, confirm the rule is now in `CLAUDE.md`.
 
 **Action:** Now a personal memory. Type:
 ```
@@ -100,7 +100,7 @@ Watch for the saved-memory confirmation, then verify where it went (in the codes
 /memory
 ```
 
-The view lists **Auto-memory**, **Project memory** (`./CLAUDE.md`) and **User memory** (`~/.claude/CLAUDE.md`), plus an option to open the auto-memory folder. Hit *Esc* to exit.
+The view shows **Auto-memory: on** as a status line, then three entries: **1. Project instructions** (*Checked in at ./CLAUDE.md*), **2. User instructions** (*Saved in ~/.claude/CLAUDE.md*), and **3. Open auto-memory folder**. Hit *Esc* to exit.
 
 ![memory hierarchy](./images/ccode228.png?raw=true "memory hierarchy")
 
@@ -210,12 +210,12 @@ disallowedTools: Write, Edit
 - Keep the whole report under 10 lines. Never modify files.
 ```
 
-**Action:** A new agent isn't picked up until Claude restarts (the running session says *"There's no test-scout agent type available"*). Restart — `exit`, then `claude`. Then type:
+**Action:** A new agent isn't picked up until Claude restarts — and the running session does **not** simply refuse. It reports that no `test-scout` type exists and then **quietly falls back to `general-purpose`**, which runs the suite anyway — a right-looking answer from the wrong agent, on your main model instead of Haiku, with the full test output pulled into your main context. Restart — `exit`, then `claude`. Then type:
 ```
 Use the test-scout subagent to run the test suite and summarize the failures.
 ```
 
-Approve as needed; the subagent runs in the background and asks before running `python3 app/test_app.py`. You get a compact report (10 passed / 4 failed with causes), run on Haiku, with the full test output kept out of your main context.
+The subagent runs in the background — in **manual** mode it asks before running `python3 app/test_app.py`; in **auto** mode it just runs. You get a compact report (10 passed / 4 failed with causes), run on Haiku, with the full test output kept out of your main context. Want proof it really used Haiku? `/usage` in step 10 bills `claude-haiku-4-5` on a line of its own.
 
 > **`model:` values:** an alias (`haiku`, `sonnet`, `opus`, `fable`), a full model string (`claude-haiku-4-5`), or `inherit` (the default). Same field in command frontmatter; `--model` for headless/CI; `ClaudeAgentOptions(model="haiku")` in the SDK (Lab 4). **Cheap scouts, smart supervisor.**
 
@@ -262,7 +262,7 @@ Everything you added in this lab rides along in every request.
 /context
 ```
 
-Find how much of the window is taken by system prompt, project files, and conversation.
+Find how much of the window is taken by each category: **System prompt**, **System tools**, **Custom agents**, **Memory files** (that's your `CLAUDE.md` plus auto-memory), **Skills**, and **Messages** (the conversation itself).
 
 > **Companion:** `/usage` answers "what have I spent?" and on a paid plan breaks usage down **by attribution** — skills, subagents, plugins, each MCP server. Try it now; remember it in Lab 5.
 
@@ -407,6 +407,8 @@ claude --dangerously-skip-permissions
 claude-yolo (if running in the codespace)
 ```
 
+> **You'll have to accept a warning.** Bypass mode opens with a red **"WARNING: Claude Code running in Bypass Permissions mode"** screen — choose **2. Yes, I accept**. The status line at the bottom then reads *bypass permissions on* instead of *auto mode on*.
+
 ---
 <br><br>
 
@@ -416,11 +418,11 @@ claude-yolo (if running in the codespace)
 /hooks
 ```
 
-You should see **PreToolUse** and **PostToolUse** each showing one hook, with a `[command]` type and a `Project` source (from `.claude/settings.json`).
+The first screen lists hook **events**, read-only. Yours are **PreToolUse (1)** and **PostToolUse (1)**; the rest (`PostToolUseFailure`, `PostToolBatch`, `PermissionDenied`, more if you scroll) are empty. Note the banner: this menu only *shows* hooks — to change one you edit `.claude/settings.json`.
 
 ![The /hooks menu](./images/cc-se6.png?raw=true "The /hooks menu")
 
-Select one to see how the hook works, then drill in another level to see the configured command.
+Select **PreToolUse** to see how the event works — the exit-code legend, and your matcher listed as `[Project] Edit|Write  1 hook`. Drill in one more level to see the command itself: `[command] ${CLAUDE_PROJECT_DIR}/.claude/hooks/protect-config.sh`, sourced from `Project Settings`.
 
 ![How the hook works](./images/cc-se8.png?raw=true "How the hook works")
 
@@ -478,9 +480,9 @@ Let Claude run its commands.
 ! cat .claude/bash-command-log.txt
 ```
 
-(Heads-up: while typing a path that matches real files, Claude Code may show a subtle suggested-path line near the input — **while it's showing, *Enter* is silently ignored**. Press `Esc` once to clear it, then *Enter*.)
+(While you type a path that matches real files, Claude Code shows a dim suggested-path line under the input. It's only a hint — *Enter* still submits.)
 
-You should see each command Claude ran, with its description. (Your own `!` commands appear too — they go through the Bash tool.)
+You should see each command Claude ran, with its description. Your own `!` commands are **not** in the list — they don't go through the Bash tool, so PostToolUse never fires for them. The log is Claude's activity, not yours.
 
 ![The bash command log](./images/cc-se11.png?raw=true "The bash command log")
 
@@ -816,6 +818,8 @@ python3 sdk/agent_loop.py "What files are in the sdk directory? Answer in one se
 
 You'll see `[claude]` lines and likely one or more `[tool]` lines, then the `ResultMessage` stats: turns used, duration, final result.
 
+> **`allowed_tools` is not an exhaustive whitelist.** You will often see a `[tool] Bash` line here even though `Bash` isn't in the list — Claude Code ships a built-in set of read-only commands (`ls`, `cat`, `git status`, ...) that never need approval. `allowed_tools` governs the calls that would otherwise stop and ask, which is exactly what step 5 shows with `Write`.
+
 ![sdk run](./images/cc-se60.png?raw=true "sdk run")
 
 ---
@@ -826,7 +830,7 @@ You'll see `[claude]` lines and likely one or more `[tool]` lines, then the `Res
 ```bash
 python3 sdk/agent_loop.py "Find every TODO comment in the .py files under sdk/ and mcpserver/ and list them"
 ```
-Watch the `[tool]` lines: the agent calls a read-only tool (`Glob`, then `Grep`), gets results back, and only then answers. Each `[tool]` line is one trip around the loop; **Turns used** counts those trips.
+Watch the `[tool]` lines: the agent calls a read-only tool (`Grep`, usually more than once), gets results back, and only then answers. Each `[tool]` line is one trip around the loop; **Turns used** counts those trips.
 
 ![sdk run](./images/cc-se61.png?raw=true "sdk run")
 
@@ -898,9 +902,9 @@ TASK = "Use a Bash rm command to delete agent_report.md. Then say DONE."
 
 **Save your changes.** Run it again (`python3 sdk/auto_agent.py`). The PreToolUse hook sees the `Bash` call **before** it runs and returns `deny`, so the `rm` never executes. Watch for the deny line:
 ```
-  [gatekeeper] DENIED: Bash -> 'rm agent_report.md'
+  [gatekeeper] DENIED: Bash -> 'rm -f agent_report.md'
 ```
-Claude still prints `DONE` because the task told it to, so **`Result: DONE` proves nothing**. The proof is the deny line *and* the file still being there:
+(The exact command varies — `rm`, `rm -f`, whatever Claude reaches for. The hook matches on the tool, not the spelling.) Claude will usually explain that it couldn't delete the file, and it still says `DONE` because the task told it to — so **the `Result:` line proves nothing either way**. The proof is the deny line *and* the file still being there:
 ```bash
 ls agent_report.md
 ```
@@ -1004,7 +1008,7 @@ As you merge, read the docstrings — each tells Claude *when* to reach for that
 python3 mcpserver/project_server.py
 ```
 
-Nothing appears — correct. (If you see the skeleton message, the merge didn't save.) Stop it with `Ctrl+C`. From now on Claude Code starts and stops this process for you.
+Nothing appears — correct. (If you see the skeleton message, the merge didn't save.) Stop it with `Ctrl+C`: a stdio server has no shutdown handler, so Python prints a long `KeyboardInterrupt` traceback on its way out — that's expected, not a failure. From now on Claude Code starts and stops this process for you.
 
 ---
 <br><br>
@@ -1065,7 +1069,7 @@ When prompted to use/approve the MCP server(s) from `.mcp.json`, approve them.
 /mcp
 ```
 
-Hit *Enter*, select the **project-health** server and browse its three tools. Select one — the description is the docstring you merged in step 3; the (empty) input schema comes from the function signature.
+Hit *Enter*, select the **project-health** server and browse its three tools. Select one — it shows the **Full name** (`mcp__project-health__run_tests`) and a **Description** that is the docstring you merged in step 3, word for word. That docstring is the entire basis on which Claude decides to reach for this tool.
 
 ![mcp panel](./images/ccadv5.png?raw=true "mcp panel")
 
@@ -1080,7 +1084,7 @@ Use `Esc` to get back to the main prompt.
 Use the project-health server to run the test suite and summarize what's failing and why.
 ```
 
-Approve the tool use. Claude calls `mcp__project-health__run_tests`, gets your captured test output back, and explains the four contract violations — the ones `/triage` found in Lab 1, now through a tool you built.
+(In **manual** mode, approve the tool use.) Claude calls `mcp__project-health__run_tests`, gets your captured test output back, and explains the four contract violations — the ones `/triage` found in Lab 1, now through a tool you built.
 
 ![run tests tool](./images/ccadv6.png?raw=true "run tests tool")
 
@@ -1093,7 +1097,7 @@ Approve the tool use. Claude calls `mcp__project-health__run_tests`, gets your c
 Using the project-health tools, give me a one-paragraph health report on this repo: test status, TODO count, and overall size.
 ```
 
-You should see calls to your tools (watch for the `mcp__project-health__...` names), then a synthesized report.
+You should see a line like **`Called project-health 2 times`**, then a synthesized report. The transcript collapses tool calls by default — press *Ctrl+o* to expand it and watch the real `mcp__project-health__...` names go by.
 
 > **Tie-back to Lab 2:** those full tool names are what a hook matcher targets — `"matcher": "mcp__project-health__.*"` lets a PreToolUse hook govern *your own server's* tools the way it governed Edit/Write.
 
