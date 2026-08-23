@@ -32,7 +32,7 @@
 
 # Lab 1: Advanced Context, Custom Commands & Extended Thinking
 ## Lab Purpose
-Build project context on a real codebase, a parameterized custom command, a skill, and a low-cost Haiku subagent, and use extended thinking. Estimated time: 10-12 minutes.
+Build project context on a real codebase, a parameterized custom command, a skill, and a low-cost Haiku subagent, and use extended thinking. 
 
 ---
 <br><br>
@@ -304,13 +304,13 @@ exit
 
 # Lab 2: Hooks: Enforcing Policy at the Tool Boundary
 ## Lab Purpose
-Create a PreToolUse hook that blocks edits to a protected file and a PostToolUse hook that logs every bash command, then watch both fire — even in auto and bypass-permissions modes. Estimated time: 10-12 minutes.
+Create a PreToolUse hook that blocks edits to a protected file and a PostToolUse hook that logs every bash command, then watch both fire — even in auto and bypass-permissions modes. 
 
 ---
 <br><br>
 
 ## 1: Set Up the Protected File and Hooks Folder
-The policy: nobody edits `config.json` — a stand-in for the credentials/config files every real project has.
+We are working to implement this policy: nobody edits `config.json` — a stand-in for the credentials/config files every real project has.
 
 **Action:** In a regular terminal (not Claude), create the file:
 ```
@@ -458,8 +458,6 @@ Exit code 2 also feeds the stderr text back to Claude; ours told it to suggest t
 ```bash
 cat config.json
 ```
-
-No `connection_timeout` — the file never changed, even in bypass-permissions mode.
 
 > **Why not `! cat config.json` here?** Claude Code auto-responds to in-session bash output, and in bypass mode it may *finish* the step 7 edit via the **Bash** tool, which our `Edit|Write` matcher doesn't block. A plain terminal keeps Claude out of the loop.
 
