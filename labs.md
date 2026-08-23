@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — custom commands, hooks, CI automation, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.11 - 08/21/26
+## Revision 1.12 - 08/22/26
 
 <br><br>
 
@@ -21,12 +21,10 @@
 >
 > You should see an indicator that the model was set to a *Sonnet* model (currently *Sonnet 5* / `claude-sonnet-5` — the exact version shown may be newer) with *medium* effort. Note: your `/model` selection is saved as the default for new sessions; press `s` in the model list to set it for the current session only.
 >
-> **Today's ladder:** Haiku 4.5 $1/$5 per million tokens · Sonnet 5 $2/$10 · Opus 5 $5/$25 · Fable 5 $10/$50. Sonnet 5, Opus 5 and Fable 5 all carry a 1M-token context window at standard rates, so above Haiku you buy judgment, speed, and knowledge recency (Opus 5's cutoff is May 2026 against January 2026 for Sonnet 5 and Fable 5).
 >
 <br><br>
 
-**NOTE:** This course assumes you've completed the introductory Claude Code workshop (or equivalent). Steps that exercise something from that course are marked *(recap)* and kept quick. Since **August 14, 2026** your sessions normally start in **auto mode** on Pro, Max, and Team plans, so most permission prompts are already gone — a background classifier approves routine actions and stops for risky ones. The bottom-left of the prompt tells you which mode you're in. Your **first** session after a fresh install — a brand-new Codespace counts — can start in **manual** whatever your plan; later ones pick up auto. Steps that differ between the two say so. Where a lab says it's OK, `claude --dangerously-skip-permissions` (alias `claude-yolo` in the codespace) removes the remaining checks as well.
-
+**NOTE:** This course assumes you've completed the introductory Claude Code workshop (or equivalent). Steps that exercise something from that course are marked *(recap)* and kept quick. 
 <br><br>
 
 ---
@@ -52,6 +50,9 @@ Then type:
 Give me a one-paragraph overview of this repo: what's in app/, sdk/, and mcpserver/, and how do I run the tests?
 ```
 
+![Overview](./images/ccadv11.png?raw=true "Overview")
+
+
 ---
 <br><br>
 
@@ -63,27 +64,29 @@ CLAUDE.md is read at the start of every session.
 /init
 ```
 
-In **manual** mode `/init` first asks **"Do you want to create CLAUDE.md?"** — choose option 1 (Yes); in **auto** mode (the default) it just creates it without asking. Open the generated `CLAUDE.md` (the `code` command works in the codespace) and skim it.
-
-![claude.md](./images/ccode226.png?raw=true "claude.md")
+![claude.md](./images/ccadv12.png?raw=true "claude.md")
 
 ---
 <br><br>
 
-## 3: Persist a Rule, a Memory — and See the Hierarchy *(recap)*
+## 3: Persist a Rule, a Memory *(recap)*
 One fact, two homes: a shared rule in CLAUDE.md (committed, repo-wide) and a personal fact in *auto-memory* (a MEMORY.md per project, per user).
 
-**Action:** First, the shared rule. Type:
+**Action:** First, the shared rule. Type into Claude:
 ```
 Add this standing rule to CLAUDE.md: The test suite is run with python3 app/test_app.py. Never edit app/test_app.py - it defines the correct contract.
 ```
+(Note that the rule may already be in the CLAUDE.md file.  If so, that's ok.)
 
 In **manual** mode, approve the edit; in **auto** mode (the default) it just lands. Either way, confirm the rule is now in `CLAUDE.md`.
 
-**Action:** Now a personal memory. Type:
+**Action:** Now a memory. Type:
 ```
 Remember that when I ask for code reviews in this repo, I want short, test-first explanations.
 ```
+
+![Add rule and memory](./images/ccadv14.png?raw=true "Add rule and memory")
+
 
 Watch for the saved-memory confirmation, then verify where it went (in the codespace):
 ```
@@ -93,27 +96,36 @@ Watch for the saved-memory confirmation, then verify where it went (in the codes
 
 > **Rule of thumb:** *enforced and shared* → CLAUDE.md; *personal and learned* → auto-memory (per user, per machine; the first ~200 lines load each session).
 
-![Add rule and memory](./images/ccadv9.png?raw=true "Add rule and memory")
+---
+<br><br>
+
+## 4: View the memory files hierarchy.
+
 
 **Action:** Now see how the layers stack. Type:
 ```
 /memory
 ```
 
-The view shows **Auto-memory: on** as a status line, then three entries: **1. Project instructions** (*Checked in at ./CLAUDE.md*), **2. User instructions** (*Saved in ~/.claude/CLAUDE.md*), and **3. Open auto-memory folder**. Hit *Esc* to exit.
+The view shows **Auto-memory: on** as a status line, then three entries: **1. Project instructions** (*Checked in at ./CLAUDE.md*), **2. User instructions** (*Saved in ~/.claude/CLAUDE.md*), and **3. Open auto-memory folder**. 
 
 ![memory hierarchy](./images/ccode228.png?raw=true "memory hierarchy")
+
+Type `1` to see the contents of CLAUDE.md.
+
+![Viewing CLAUDE.md](./images/ccadv13.png?raw=true "Viewing CLAUDE.md")
 
 ---
 <br><br>
 
-## 4: Create a Real Custom Command
-**Action:** In a terminal tab (keep Claude running), create the folders:
+## 5: Create a Real Custom Command
+
+**Action:** In a separate terminal tab (keep Claude running), create the folders:
 ```bash
 mkdir -p .claude/commands .claude/skills
 ```
 
-**Action:** Create `.claude/commands/triage.md` (the `code` command works in the codespace) with these contents, and save:
+**Action:** Create `.claude/commands/triage.md` (the `code` command works in the codespace) with these contents, and **save it**:
 
 ```md
 ---
@@ -136,43 +148,44 @@ Triage the file $ARGUMENTS:
 4) Propose the smallest fix plan (max 5 steps). Do not edit any files.
 ```
 
-Four advanced features in one file:
+This file demonstrates four advanced features:
 
 - **`$ARGUMENTS`** — text typed after `/triage`; positional `$1`, `$2`, ... also work.
 - **`` !`git status --short` ``** — runs *when the command is invoked*; its output is injected into the prompt.
 - **`@CLAUDE.md`** — pulls the file into context, same as an @ mention.
 - **`allowed-tools`** — scopes what the command may do; note the fine-grained `Bash(git status:*)` syntax.
 
-![Creating the triage command](./images/ccadv1.png?raw=true "Creating the triage command")
+![Creating the triage command](./images/ccadv15.png?raw=true "Creating the triage command")
 
 ---
 <br><br>
 
-## 5: Run the Command on the Buggy API
-**Action:** Claude Code loads custom commands at **startup**, so your running session doesn't know `/triage` yet (it would say *"Unknown command: /triage"*). Restart Claude — `exit`, then `claude`. Then type:
+## 6: Run the Command on the Buggy API
+**Action:** Claude Code loads custom commands at **startup**, so your running session doesn't know `/triage` yet (it would say *"Unknown command: /triage"*). 
+
+Restart Claude — type `/exit`, then `claude`. Then type:
+
 ```
 /triage app/app.py
 ```
 
-In **manual** mode, the first time you invoke a project command Claude asks **"Use skill 'triage'?"** — approve it (option 1). In **auto** mode (the default) the skill loads without asking.
-
-Git context and CLAUDE.md are injected automatically. The triage should flag the API returning **500** where the contract demands **400** (bad input) or **404** (missing item) — the failures automation meets again in Labs 3-5.
+Git context and CLAUDE.md are injected automatically. The triage should flag the API returning **500** where the contract demands **400** (bad input) or **404** (missing item).
 
 ![Running the triage command](./images/ccadv2.png?raw=true "Running the triage command")
 
 ---
 <br><br>
 
-## 6: Turn the Command Into a Skill — Without Restarting
+## 7: Turn the Command Into a Skill — Without Restarting
 Custom commands have **merged into skills**: `.claude/commands/triage.md` and `.claude/skills/triage/SKILL.md` both create `/triage`, and the frontmatter means the same in both.
 
-**Action:** In your terminal tab (leave Claude running):
+**Action:** In your other terminal tab (leave Claude running) enter the following:
 ```bash
 mkdir -p .claude/skills/triage
 mv .claude/commands/triage.md .claude/skills/triage/SKILL.md
 ```
 
-**Action:** Now, **without restarting Claude**, run it against a different file:
+**Action:** Now, go back to the terminal tab running Claude. **Without restarting Claude**, run `/triage` against a different file:
 ```
 /triage app/datastore.py
 ```
@@ -181,12 +194,10 @@ It works: **Claude Code watches skill directories and picks up adds, edits and r
 
 > **If `/triage` isn't found**, restart Claude once — the watcher only follows directories that already existed at session start, which is why we created `.claude/skills` earlier.
 
-> **The folder also buys you:** supporting files beside `SKILL.md` (a `scripts/` helper makes results deterministic); `disable-model-invocation: true` for user-only skills (leave it off and Claude may load the skill itself when your request matches the description); `context: fork` for its own subagent; `background: true` to detach. A personal skill in `~/.claude/skills/` beats a project one; a project skill named `code-review` replaces the bundled `/code-review`.
-
 ---
 <br><br>
 
-## 7: Delegate to a Cheaper Model — a Haiku Subagent
+## 8: Delegate to a Cheaper Model — a Haiku Subagent
 Verbose output stays in the subagent — only a summary returns — and `model:` pins it to a cheaper, faster model.
 
 **Action:** In your terminal tab, create the agents folder:
@@ -210,12 +221,19 @@ disallowedTools: Write, Edit
 - Keep the whole report under 10 lines. Never modify files.
 ```
 
-**Action:** A new agent isn't picked up until Claude restarts — and the running session does **not** simply refuse. It reports that no `test-scout` type exists and then **quietly falls back to `general-purpose`**, which runs the suite anyway — a right-looking answer from the wrong agent, on your main model instead of Haiku, with the full test output pulled into your main context. Restart — `exit`, then `claude`. Then type:
+---
+<br><br>
+
+## 9: Restart and run the subagent.
+
+**Action:** Switch back to Claude and restart to ensure the new agent is picked up and then run it.
+
+Restart — `/exit`, then `claude`. Then type:
 ```
 Use the test-scout subagent to run the test suite and summarize the failures.
 ```
 
-The subagent runs in the background — in **manual** mode it asks before running `python3 app/test_app.py`; in **auto** mode it just runs. You get a compact report (10 passed / 4 failed with causes), run on Haiku, with the full test output kept out of your main context. Want proof it really used Haiku? `/usage` in step 10 bills `claude-haiku-4-5` on a line of its own.
+The subagent runs in the background and you get a compact report (10 passed / 4 failed with causes), run on Haiku, with the full test output kept out of your main context. 
 
 > **`model:` values:** an alias (`haiku`, `sonnet`, `opus`, `fable`), a full model string (`claude-haiku-4-5`), or `inherit` (the default). Same field in command frontmatter; `--model` for headless/CI; `ClaudeAgentOptions(model="haiku")` in the SDK (Lab 4). **Cheap scouts, smart supervisor.**
 
@@ -224,7 +242,7 @@ The subagent runs in the background — in **manual** mode it asks before runnin
 ---
 <br><br>
 
-## 8: Use Extended Thinking for a Planning Task
+## 10: Use Extended Thinking for a Planning Task
 The **effort level** in `/model` is your session-wide dial; `ultrathink` anywhere in a prompt asks for deeper reasoning **on that turn only**.
 
 > **What `ultrathink` does:** Claude Code adds an in-context instruction to think harder; the effort level sent to the API is *unchanged*, so it stacks on whatever you set. **Not** keywords: "think", "think hard", "think more" — ordinary prompt text.
@@ -236,25 +254,12 @@ ultrathink: Propose a refactoring plan for app/ that fixes the 400/404 contract 
 
 ![Extended thinking](./images/ccadv3.png?raw=true "Extended thinking")
 
----
-<br><br>
-
-## 9: Session-Level Effort
-The session default lives in `/model` — or in `/effort`, which sets it directly without opening the model picker.
-
-**Action:** Type:
-```
-/model
-```
-
-Use the left/right arrow keys to see the effort options: **low · medium · high · xhigh · max** (`high` is the default). Leave it on *medium* and hit *Esc*.
-
-> **Also:** `/effort ultracode` is a Claude Code *setting*, not a model level — it runs at `xhigh` with a dynamic multi-agent workflow. And **changing effort mid-session invalidates your prompt cache** (keyed by model *and* effort), so Claude Code asks you to confirm. Set model and effort once, at the top of a session.
+You can use *Ctrl+o* to get back to the main claude interface.
 
 ---
 <br><br>
 
-## 10: See What Your Context Costs *(recap)*
+## 11: See What Your Context Costs *(recap)*
 Everything you added in this lab rides along in every request.
 
 **Action:** Type:
@@ -264,16 +269,18 @@ Everything you added in this lab rides along in every request.
 
 Find how much of the window is taken by each category: **System prompt**, **System tools**, **Custom agents**, **Memory files** (that's your `CLAUDE.md` plus auto-memory), **Skills**, and **Messages** (the conversation itself).
 
-> **Companion:** `/usage` answers "what have I spent?" and on a paid plan breaks usage down **by attribution** — skills, subagents, plugins, each MCP server. Try it now; remember it in Lab 5.
+> **Companion:** `/usage` answers "what have I spent?" and on a paid plan breaks usage down **by attribution** — skills, subagents, plugins, each MCP server. (Optional) Try `/usage` now.
 
 ![context usage](./images/ccode224.png?raw=true "context usage")
+
+Use `Esc` to get back to the main Claude interface.
 
 ---
 <br><br>
 
-## 11: Exit
+## 12: Exit
 
-**Action:** In prep for the next lab and a fresh start, type `exit` to exit Claude Code.
+**Action:** In prep for the next lab and a fresh start, type `/exit` to exit Claude Code.
 
 ```
 exit
