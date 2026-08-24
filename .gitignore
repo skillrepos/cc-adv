@@ -206,29 +206,42 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# PowerPoint decks (kept out of the student repo)
-*.pptx
-*.potx
-# PowerPoint lock/temp files
-~$*.pptx
+# ── TechUpSkills course-repo conventions ─────────────────────────────────────
+# The repo carries only what a student needs: README, labs.md, STARTUP.md,
+# LICENSE, the local-setup guides, and the lab material under extra/.
+# Everything else is internal working material — decks, CHANGELOG, HANDOFF,
+# outlines, course specs, QA reports — and stays out.
 
-# TechUpSkills course-repo conventions
-# (*.pptx already ignored above; repeated here to keep the block intact/portable)
+# Decks are never tracked (nor Office's lock files)
 *.pptx
 *.pptm
 *.potx
 *.ppt
+~$*.pptx
+
+# Internal markdown. The blanket *.md plus an allow-list is deliberate: it
+# excludes ALL-CAPS internal files WITHOUT using a [A-Z]*.md glob, which would
+# also match labs.md on case-insensitive filesystems (macOS / OneDrive, where
+# core.ignorecase=true).
 *[qQ][aA]*.md
 *.md
+
+# ...the only markdown students need. Both cases of readme are listed on
+# purpose: cc-se ships `readme.md`, and the Codespace is Linux, where ignore
+# matching IS case-sensitive.
 !README.md
+!readme.md
 !README-Codespace.md
 !LICENSE.md
 !labs.md
 !STARTUP.md
-# cc-adv also tracks these .md files -- allow-listed so the rule matches reality
-!CHANGELOG.md
-!HANDOFF.md
-!description.md
-!outline.md
+!local-machine-setup.md
+!local-setup-requirements.md
 !.github/copilot-instructions.md
+
+# Lab material under extra/ is course content, not internal notes — keep it
+# trackable, including new SKILL.md / command / agent files added later.
+!extra/**/*.md
+
+# Scratch and working directories (_backups/, _to_delete/, ...)
 _*/
