@@ -51,7 +51,7 @@ The repo holds a Flask to-do API in `app/` (its test suite fails in 4 places *by
 claude
 ```
 
-> **First launch only:** Claude Code offers to **"Try the new fullscreen renderer?"**. Choose **2. Not now** — the classic renderer is what the screenshots in this lab show. (You can turn it on later with `/tui fullscreen`.)
+> **Fullscreen renderer prompt:** On some starts, Claude Code may offer to **"Try the new fullscreen renderer?"**. Choose **2. Not now** — the classic renderer is what the screenshots in this lab show. (You can turn it on outside of class with `/tui fullscreen`.)
 
 Then type:
 ```
@@ -62,9 +62,9 @@ Then type:
 
 **Action:** When it finishes, open the file it wrote — click **CLAUDE.md** in the file list on the left, or type `! code CLAUDE.md` at the Claude prompt (a `!` prefix runs the rest as a shell command).
 
-Skim it. It will already have worked out the repo layout, the test command, and the fact that `app/`'s four failing tests are deliberate — **that is the half of CLAUDE.md Claude can read for itself.** Note the section it created for standing rules; you're about to add one.
+Skim it. It will already have worked out the repo layout, the test command, and the fact that `app/`'s four failing tests are deliberate — **these are the pieces of CLAUDE.md Claude can read for itself.** Note the section it created for standing rules; you're about to add one.
 
-**Action:** Now add the half it cannot guess. Back at the Claude prompt, type:
+**Action:** Now add a rule CLAUDE cannot guess. Back at the Claude prompt, type:
 ```
 Add this standing rule to CLAUDE.md: Never run git commit or git push in this repo - I handle version control myself. If you think something should be committed, say so and stop.
 ```
@@ -73,9 +73,9 @@ Add this standing rule to CLAUDE.md: Never run git commit or git push in this re
 
 **That contrast is the point of this step:** `/init` documents what it can *discover*; a standing rule is where *your* policy goes — a preference no amount of reading the code would reveal. Lab 2 comes back to this exact rule to show how much a CLAUDE.md instruction is really worth.
 
-> **Where each kind of knowledge lives:** shared rules everyone on the repo should follow → CLAUDE.md; personal facts Claude learns about how *you* work → auto-memory. `/memory` shows the full hierarchy; we won't walk it here.
+> **fyi: Where each kind of knowledge lives:** shared rules everyone on the repo should follow → CLAUDE.md; personal facts Claude learns about how *you* work → auto-memory. `/memory` shows the full hierarchy; we won't walk it here.
 
-![Add rule and memory](./images/ccadv14.png?raw=true "Add rule and memory")
+![Add rule](./images/ccadv26.png?raw=true "Add rule")
 
 ---
 <br><br>
