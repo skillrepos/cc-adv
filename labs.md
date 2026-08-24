@@ -158,6 +158,8 @@ name: triage
 context: fork
 ```
 
+![Adding fields](./images/ccadv27.png?raw=true "Adding fields")
+
 **Action:** In Claude — still no restart:
 ```
 /triage app/auth.py
