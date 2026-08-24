@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, CI automation, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.15 - 08/24/26
+## Revision 1.16 - 08/24/26
 
 <br><br>
 
@@ -44,6 +44,8 @@ The repo holds a Flask to-do API in `app/` (its test suite fails in 4 places *by
 ```bash
 claude
 ```
+
+> **First launch only:** Claude Code offers to **"Try the new fullscreen renderer?"**. Choose **2. Not now** — the classic renderer is what the screenshots in this lab show. (You can turn it on later with `/tui fullscreen`.)
 
 Then type:
 ```
@@ -161,6 +163,8 @@ context: fork
 
 Watch the transcript: the triage now runs as a delegated task and only the report returns. Your main conversation didn't absorb the file reads and git output — in step 11, `/context` will show the difference.
 
+> **Read the wording carefully:** the transcript says *"Running in the background as @triage"*, then *"Agent … finished"*. "Background" here is the transcript's word for *delegated* — the result still lands back in **this** conversation, which is what makes it a fork. A true `background: true` skill would not come back at all.
+
 > **The third execution dial:** `background: true` detaches the skill entirely — fire and keep typing. Fork = *same conversation, separate workspace*. Background = *separate everything, result arrives when ready*.
 
 ![Forked triage](./images/ccadv16.png?raw=true "Forked triage")
@@ -216,7 +220,7 @@ The subagent runs in the background and you get a compact report (10 passed / 4 
 ## 8: Two Dials of Thinking
 The **effort level** is your session-wide dial; `ultrathink` anywhere in a prompt asks for deeper reasoning **on that turn only** — an in-context nudge that stacks on whatever effort is set. ("think", "think hard", "think more" are *not* keywords — just ordinary prompt text.)
 
-**Action:** Type the following, then hit *Ctrl+o* while it runs to watch the thinking stream:
+**Action:** Type the following, then hit *Ctrl+o* while it runs to switch to the **detailed transcript** — every tool call, with timestamps and the model that served each turn (*Ctrl+o* again returns to the compact view):
 ```
 ultrathink: Propose a refactoring plan for app/ that fixes the 400/404 contract violations without changing test_app.py. Consider at least two approaches and recommend one. Plan only - do not edit files.
 ```
@@ -235,12 +239,13 @@ Everything so far ran inside your session. `claude --bg` starts a **background a
 
 **Action:** In your **terminal tab** (leave your interactive session running — they coexist fine), run:
 ```bash
-claude --bg "Run python3 app/test_app.py and write a markdown summary of the failures to bg_report.md - one line per failure naming the contract each violates" --permission-mode acceptEdits
+claude --bg "Run python3 app/test_app.py and write a markdown summary of the failures to bg_report.md - one line per failure naming the contract each violates" --permission-mode acceptEdits --allowedTools "Bash(python3:*)"
 ```
 
 You get back a session ID and the management commands, immediately:
 
 ```
+Starting background service…
 backgrounded · b6cd8417
   claude agents             list sessions
   claude attach b6cd8417    open in this terminal
@@ -248,7 +253,9 @@ backgrounded · b6cd8417
   claude stop b6cd8417      stop this session
 ```
 
-An unattended session has nobody to click "Yes" — that's why the `--permission-mode acceptEdits` is there, the same rule Lab 3 taught for `-p`.
+An unattended session has nobody to click "Yes" — so it must be told, up front, everything it is allowed to do.
+
+> **Why two flags and not one.** Passing `--permission-mode` *replaces* auto mode; it does not add to it. `acceptEdits` pre-approves **file writes** and nothing else — so the very first thing this task does, running the test suite, is a **Bash** call that stops dead waiting for an approval nobody will ever give. `--allowedTools "Bash(python3:*)"` is what covers that call. **Mode governs edits; `--allowedTools` governs commands** — an unattended run usually needs both. (Try dropping the `--allowedTools` half later and watch `claude agents` report the session stuck on *"approve Bash: …"*.)
 
 ![Background agent started](./images/ccadv17.png?raw=true "Background agent started")
 
@@ -261,14 +268,27 @@ An unattended session has nobody to click "Yes" — that's why the `--permission
 claude agents
 ```
 
-**Agent view** shows every session — your interactive one and the background worker — with its state. Arrow to the background session to watch it; hit *q* to leave the view. Then confirm the work landed:
+**Agent view** lists your **detached** sessions — the background worker is here; the interactive session you are typing in is not. Arrow to the background session to watch it; **Esc** leaves the view (Esc twice if you have landed in the "Describe a task" box).
+
+Now go looking for the report the worker wrote:
 ```bash
 cat bg_report.md
 ```
 
-You should see the four failures summarized. If the worker is still running, `claude logs <id>` shows its recent output without attaching; `claude stop <id>` ends it.
+**It isn't there.** That is not a failure — it is the lesson:
+```bash
+cat .claude/worktrees/*/bg_report.md
+```
 
-> **When two workers edit the same files — worktrees.** Today's worker only wrote a report, but parallel *editing* agents would collide. Claude Code's answer is **git worktrees**: `claude -w <name>` (or `--worktree`) starts a session in its own working copy under `.claude/worktrees/<name>/`, on a branch named `worktree-<name>` — and a custom subagent with `isolation: worktree` in its frontmatter *always* edits in a disposable worktree, which is removed automatically if the agent finishes without changes. Same repo, separate filesystems, merge when you're ready.
+There are your four failures. `claude --bg` **isolated the worker into its own git worktree** before letting it touch a file:
+```bash
+git worktree list
+```
+You'll see your repo on `main`, plus `.claude/worktrees/<random-name>` on a branch `worktree-<random-name>`.
+
+> **Why worktrees are the answer to "what happens when two agents edit the same code?"** Each agent gets its own working copy of the repo on its own branch, so parallel editors never collide — you merge when you're ready. You can ask for one deliberately with `claude -w <name>` (`--worktree`), and a custom subagent with `isolation: worktree` in its frontmatter *always* edits in a disposable worktree, removed automatically if it finishes without changes.
+
+> **Managing the fleet:** `claude logs <id>` shows recent output without attaching · `claude attach <id>` opens it here · `claude stop <id>` ends it · `claude rm <id>` removes the session **and** its worktree. A session left waiting on an approval holds its worktree **locked**, and plain `git worktree remove` will refuse it — `claude rm` is the clean way out.
 
 > **Why this matters:** subagents die with your session; a background agent is a peer. This is the rung right below **agent teams** (peers that message each other — experimental, `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`) and **dynamic workflows** (a script orchestrating dozens of agents — the `ultracode` keyword). Slides cover both; they're heavy for a shared classroom, so try them on your own account.
 
@@ -310,7 +330,9 @@ exit
 - Forked it with `context: fork` — full conversation, separate workspace
 - Delegated verbose test output to a `model: haiku` subagent
 - Used `ultrathink` and the session effort dial
-- Detached a worker entirely with `claude --bg` and managed it with `claude agents` / `logs` / `stop`
+- Detached a worker entirely with `claude --bg` and managed it with `claude agents` / `logs` / `stop` / `rm`
+- Learned why an unattended run needs a permission **mode** *and* an `--allowedTools` list
+- Found the worker's output in its own **git worktree** — isolation you can see
 - Audited what all of it costs with `/context` and `/usage`
 
 > **The decision rule, in one breath:** **subagent** = delegated specialist inside your workflow · **fork** = keep noisy work out of your primary context · **background agent** = independent concurrent session · **worktree** = independent filesystem changes · **cheaper model** = match cost and intelligence to the task.
@@ -594,9 +616,11 @@ Setting the goal **starts a turn immediately** — you do not send a second prom
 <br><br>
 
 ## 3: Watch the Evaluator's Verdicts
-The transcript shows every verdict the evaluator returns: **not yet met** (Claude keeps going, using the reason as guidance), **met** (the goal clears), or **impossible** (it clears and records why).
+The evaluator returns one of three verdicts: **not yet met** (Claude keeps going, using the reason as guidance), **met** (the goal clears), or **impossible** (it clears and records why).
 
-**Action:** Press *Ctrl+O* to expand the reasoning and see the reason behind the latest verdict.
+**Action:** Press *Ctrl+O* to expand the detailed transcript and read the **Reason:** line under the verdict.
+
+> **Don't be surprised by a one-turn win.** On this task Claude usually fixes all four routes in a single turn, so you'll often see just `✓ Goal achieved (… · 1 turn · …)` with no *not yet met* rounds in between. The verdict and its reason are the thing to read — the number of rounds is whatever the work took.
 
 ![goal verdicts](./images/ccadv20.png?raw=true "goal verdicts")
 
@@ -611,7 +635,7 @@ The transcript shows every verdict the evaluator returns: **not yet met** (Claud
 /goal
 ```
 
-You get the condition, how long it ran, turns evaluated, token spend, and the evaluator's most recent reason.
+You get the verdict, the condition, how long it ran, turns evaluated, and token spend. (The evaluator's *reason* isn't on this card — that's the `Ctrl+O` view from step 3.)
 
 ![goal status](./images/ccadv21.png?raw=true "goal status")
 
@@ -677,9 +701,9 @@ Now a bare `/loop` in this project runs *that* instead of the built-in prompt. P
 ## 8: Inspect and Cancel the Loop
 Scheduled tasks are **session-scoped**: they die with the conversation, restore on `claude --resume`, and expire after 7 days.
 
-**Action:** Check that the loop has fired at least once:
+**Action:** Check that the loop has fired at least once — the `!` prefix runs it as a shell command instead of sending it to Claude:
 ```
-cat beat.md
+! cat beat.md
 ```
 
 Then ask for the task list and cancel it in plain English:
@@ -700,14 +724,17 @@ Claude uses `CronList` and `CronDelete` under the hood. (*Esc* while a loop is w
 **Action:** Exit Claude (*Ctrl+D*) and run in the terminal:
 ```bash
 claude -p "/goal beat.md exists and its last line names the current test pass/fail counts" \
-  --permission-mode acceptEdits --output-format json | jq '{result, num_turns, total_cost_usd}'
+  --permission-mode acceptEdits --allowedTools "Bash(python3:*)" \
+  --output-format json | jq '{result, num_turns, total_cost_usd}'
 ```
 
-`-p` works, prints, and exits. `--output-format json` wraps the answer with `session_id`, `num_turns` and `total_cost_usd` — every run scriptable and auditable.
+`-p` works, prints, and exits. `--output-format json` wraps the answer with `session_id`, `num_turns` and `total_cost_usd` — every run scriptable and auditable. Expect roughly **3 turns and a few cents**.
 
 ![headless goal](./images/ccadv24.png?raw=true "headless goal")
 
-> **`-p` has no human to click "Yes."** Interactive sessions start in auto mode on Pro/Max/Team, but `claude -p` and the Agent SDK still start in `default` — so anything unattended must pre-approve its permissions with `--permission-mode` or `--allowedTools`. Nothing about the August 2026 auto-mode default changes that.
+> **`-p` has no human to click "Yes."** Interactive sessions start in auto mode on Pro/Max/Team, but `claude -p` and the Agent SDK still start in `default` — so anything unattended must pre-approve its permissions with `--permission-mode` **and** `--allowedTools`. Nothing about the August 2026 auto-mode default changes that.
+
+> **What a half-permissioned loop actually does — worth knowing before you ship one.** Drop the `--allowedTools` and this same command cannot run the test suite: `acceptEdits` covers writes, not Bash. It does **not** fail loudly. The goal stays unmet, so Claude keeps trying — and eventually satisfies the *wording* of the condition by **reading the source** and reasoning out what the counts must be, writing a confident, wrong `12 passed, 4 failed` into `beat.md`. Measured side by side: **9 turns and ~$0.41 for a fabricated answer, against 3 turns and ~$0.05 for a real one.** An autonomous loop denied the tool it needs doesn't stop — it improvises. Bound what it may do, then check what it actually ran.
 
 ---
 <br><br>
@@ -946,10 +973,11 @@ You should see every `.py` file in `app/` listed with a one-line description.
 <br><br>
 
 ## 9: Trigger the Deny Path
-**Action:** Edit the `TASK` string in `sdk/auto_agent.py` to:
+**Action:** In `sdk/auto_agent.py`, replace the **whole** `TASK = ( … )` block — all three lines, through the closing `)` — with this single line:
 ```python
 TASK = "Use a Bash rm command to delete agent_report.md. Then say DONE."
 ```
+(Replacing only the first line leaves the old string fragments behind and Python stops with an `IndentationError`.)
 
 **Save your changes.** Run it again (`python3 sdk/auto_agent.py`). The PreToolUse hook sees the `Bash` call **before** it runs and returns `deny`, so the `rm` never executes. Watch for the deny line:
 ```
