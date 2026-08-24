@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, CI automation, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.16 - 08/24/26
+## Revision 1.17 - 08/24/26
 
 <br><br>
 
@@ -21,6 +21,12 @@
 >
 > You should see an indicator that the model was set to a *Sonnet* model (currently *Sonnet 5* / `claude-sonnet-5` — the exact version shown may be newer) with *medium* effort. Note: your `/model` selection is saved as the default for new sessions; press `s` in the model list to set it for the current session only.
 >
+<br><br>
+
+**These labs assume `⏵⏵ auto mode on` — STARTUP.md Step 5.**
+
+> Check the bottom-left of the prompt; if it reads `⏸ manual mode on` — which is where a brand-new Codespace starts — press **Shift+Tab** until it reads *auto mode on*. Lab 2 deliberately switches to bypass mode; every other lab assumes auto.
+
 <br><br>
 
 **NOTE:** This course assumes you've completed the introductory Claude Code workshop (or equivalent). Steps that exercise something from that course are marked *(recap)* and kept quick.

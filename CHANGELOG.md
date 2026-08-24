@@ -1,5 +1,189 @@
 # Changelog — cc-adv (Advanced Claude Code workshop)
 
+## labs 1.17 / deck v1.12 — 08/24/26 — Restore the auto-mode caveat, and make the labs establish the mode
+
+Brent hit this for real: a freshly created Codespace started Claude Code in **manual mode**, which
+looked like the Aug-14 auto-mode default had regressed. It had not. Auto mode is the default on
+Pro/Max/Team, but **the first session after a fresh install starts in `default` (manual)** — and a
+brand-new Codespace *is* a fresh install. (Confirmed not to be a `/model` side effect: model choice
+and permission mode are independent, and the 08-24 QA run used `/model` and stayed in auto.)
+
+The sentence that explained this used to be in the preamble and was removed in **Rev 1.15** by the
+GitHub-web edit that trimmed the auto-mode NOTE. Rev 1.15 also stripped Lab 1's manual-mode
+branches, so since then the labs have *silently assumed* auto mode with nothing telling a student to
+be in it — a gap that would have hit every student on their first session.
+
+- **`STARTUP.md` gains Step 5: "Make sure you're in auto mode"** — the primary fix, and the right
+  home for it: startup is the moment immediately after the fresh install that causes this. Check the
+  bottom-left, **Shift+Tab** if it reads manual, with the caveat explained (first session after a
+  fresh install / new Codespace starts manual; later ones pick up auto, so it is a one-time step).
+- **labs.md preamble** carries a two-line pointer to that step rather than repeating the
+  explanation — a safety net for anyone who skipped startup, without adding to a prose budget that
+  is already over (see Rev 1.16's timing table). Lab 2's deliberate bypass is called out there.
+- Deliberately a *check-and-set* instruction rather than re-adding the per-step manual-mode branches
+  Brent cut in 1.15: one instruction up front makes every downstream step valid again.
+
+**Deck v1.12** — slide 11 ("What Changed on August 14, 2026") listed the contexts auto mode does not
+reach (`claude -p`, the SDK, Enterprise, API keys, Bedrock/Foundry) but **omitted the first-session
+exception** — the one students actually meet, since every student opens a brand-new Codespace. New
+bullet added, with a speaker note. Checked, not assumed: the **ccode** deck already carried this on
+its slide 17; cc-adv's did not. Second deck version today (v1.11 was the QA-findings pass); both are
+in `cc-adv/`, and v1.10 remains in `old.cc-adv/`.
+
+## deck v1.11 — 08/24/26 — Carry the live-run findings onto the slides
+
+Deck pass matching **labs Rev 1.16**. Source was `workshop-claude-code-adv_v1.10.pptx`, which after
+the folder reorg lives in **`old.cc-adv/`** — the new file is written to the live `cc-adv/` folder.
+69 slides / 58 visible, unchanged. Eight slides touched, each with an `[Update - 2026-08-24]`
+speaker note recording what was verified and why it changed.
+
+- **s23 "Background Agents — a Fleet, Not Tabs"** — the slide this pass existed for. Its bullet said
+  to give `--bg` *"the same --permission-mode you'd give -p"*, which the live run proved
+  insufficient: `--permission-mode` **replaces** auto mode and `acceptEdits` pre-approves writes
+  only, so the worker's first Bash call parks forever. Now reads **"pre-approved twice:
+  --permission-mode covers edits, --allowedTools covers commands"**, plus a new bullet on worktree
+  isolation. Panel gained `claude rm  + worktree` and its lab pointer corrected **8-9 → 9-10**.
+- **s19 "The Delegation Ladder"** — new **worktree** bullet and a `# worktree = file isolation`
+  panel line. Framed as the *second axis* (where edits land), not a sixth rung (who does the work),
+  so the ladder's shape is preserved.
+- **s39 "Anatomy of a Reliable Loop"** — new bullet: *"Starve a loop of a tool and it improvises
+  rather than stops."* The speaker note carries the measured case: denied Bash, the Lab 3 headless
+  goal read the source and reported a confident, wrong `12 passed, 4 failed` — **9 turns / $0.41
+  fabricated vs 3 turns / $0.045 correct.** Strongest cautionary tale in the deck.
+- **s22 "Extended Thinking"** — corrected the `ctrl+o` claim: it toggles the **detailed transcript**
+  (tool calls, timings, per-turn model), not a thinking stream. Panel header `# what you'll see
+  (ctrl+o)` → `# what you'll see`.
+- **s36 "/goal — The Inner Loop"** — the status card shows verdict/turns/spend, **not** the
+  evaluator's reason (that is the ctrl+o view). Note also warns that `/goal` converged in **1 turn**
+  on the lab's task, so students see a single *met* rather than a run of verdicts.
+- **s40 "Headless Mode"** — *"--allowedTools and acceptEdits let headless runs act"* blurred two
+  controls; now states the mode/tools split explicitly.
+- **s26 Lab 1 title** — note corrected: Lab 1 is **12 steps** (subagent step split), and steps 9-10
+  are the `--bg` worker and the worktree discovery.
+- **s1 (hidden)** — version stamp `1.10 / 08/23/26` → **`1.11 / 08/24/26`**.
+
+**Checked and NOT changed:** s54 "Unattended Means Permissions, Engineered" already separates
+`allowed_tools` (layer 1) from `permission_mode` (layer 2) and correctly notes the Aug-14 auto
+default does not reach `-p`/the SDK — it was right all along. s45/s46 CI slides already carry the
+content Rev 1.14 demoted out of the lab. s37 `/loop` is accurate (a `/schedule` mention is the only
+optional addition). Deck stays at 69 slides — no slide added or hidden this pass.
+
+`validate.py --original` passes; the four content-changed slides were re-rendered and visually
+checked for overflow. **v1.10 is superseded** and remains in `old.cc-adv/`.
+
+## labs 1.16 — 08/24/26 — Full live Codespace run of all 5 labs; 2 P0 fixes; 9 screenshots captured
+
+First end-to-end run of Rev 1.15 in a real Codespace (`didactic-memory-9q4q4r6vx39p9`, repo at
+`92542c8`, **Claude Code 2.1.241**, Sonnet 5 / medium, pre-authenticated). All 57 steps exercised
+except Lab 2 step 5's bypass-mode launch (see "not re-tested" below). Full trail:
+`qa-report-live-run-2026-08-24.md`.
+
+**Closed three long-standing open items:** `context: fork`, `claude --bg`/`claude agents`, and
+`/goal` + `/loop` had only ever been sandbox-verified. All four now confirmed **in the Codespace**.
+Workspace trust does **not** gate `/goal` there — Codespaces seed trust, no prompt.
+
+### P0 — Lab 1 step 9 + Lab 3 step 9: `--permission-mode acceptEdits` is not enough
+
+`--permission-mode` **replaces** auto mode rather than adding to it, and `acceptEdits` covers file
+writes only. Both steps hand their agent a task whose first action is a **Bash** call:
+
+- **Lab 1 step 9**: the `--bg` worker parked forever on *"approve Bash: python3 app/test_app.py"*.
+  `bg_report.md` was never written, so **step 10's `cat bg_report.md` could not have worked.**
+- **Lab 3 step 9**: worse — it doesn't hang, it *improvises*. Blocked from running the suite, the
+  goal loop read the source instead and wrote a confident, **wrong** `12 passed, 4 failed` into
+  `beat.md`: **9 turns / $0.41 for a fabricated answer.** With `--allowedTools "Bash(python3:*)"`
+  added: **3 turns / $0.045 and the correct `10 passed, 4 failed`.** Both measured live.
+
+Fix: both commands gained `--allowedTools "Bash(python3:*)"`, plus a "mode governs edits,
+`--allowedTools` governs commands" note. Lab 3 step 9 keeps the failure mode as taught material —
+*an autonomous loop denied a tool doesn't stop, it improvises* — which is a better lesson than the
+step had before.
+
+### P0 — Lab 1 step 10: `--bg` isolates into a git worktree, so the report isn't at repo root
+
+Live: `claude --bg` created `.claude/worktrees/tidy-painting-tower` on branch
+`worktree-tidy-painting-tower` and wrote `bg_report.md` **inside it**. `cat bg_report.md` at the
+repo root returns *No such file or directory*. (Isolation is **lazy** — the first `--bg` run, which
+never got past its permission block, created no worktree at all. That is why the 08-23 sandbox check
+missed this.) This settles the docs-vs-observation conflict flagged in the Rev 1.14 notes.
+
+Rewritten as the lesson rather than patched around: students `cat bg_report.md`, find nothing, then
+`cat .claude/worktrees/*/bg_report.md` and `git worktree list`. The Rev-1.14 worktree callout stops
+being an aside and becomes the thing they just watched happen. Also documented `claude rm <id>` —
+a session left awaiting approval holds a **locked** worktree that `git worktree remove` refuses.
+
+### Smaller corrections (all observed live on 2.1.241)
+
+- **Lab 1 step 1** — first launch prompts **"Try the new fullscreen renderer?"**; undocumented and it
+  blocks the session. Lab now says choose **2. Not now** (it changes the TUI the screenshots show);
+  `/tui fullscreen` enables it later.
+- **Lab 1 step 5** — a fork is labelled *"Running in the background as @triage"*, which collides with
+  the step's own fork-vs-background framing. Added a note that "background" here means *delegated* —
+  the result still returns to this conversation.
+- **Lab 1 step 8** — Ctrl+O does **not** show a "thinking stream"; it toggles the **detailed
+  transcript** (tool calls, timestamps, per-turn model). Reworded. *(ccode Lab 2 step 4 makes the
+  same claim — worth a look on the next intro pass.)*
+- **Lab 1 step 9** — actual output has a leading `Starting background service…` line; added.
+- **Lab 1 step 10** — agent view lists **detached sessions only**; the interactive session is not
+  there. And **`q` does not exit it** — it types into the "Describe a task" box. **Esc** does.
+- **Lab 3 step 3** — `/goal` fixed all four routes in **1 turn / 16s**, so the "watch the verdicts"
+  premise yields a single *met*. Step now says so and points at the Reason line.
+- **Lab 3 step 4** — the `/goal` status card does **not** carry the evaluator's reason (that's
+  Ctrl+O). Claim removed.
+- **Lab 3 step 8** — `cat beat.md` sits inside the Claude session; now `! cat beat.md`.
+- **Lab 4 step 9** — `TASK` is a **3-line parenthesized block**; the lab showed a one-line
+  replacement. Replacing just the first line gives an `IndentationError` (hit live). Step now says
+  replace the whole block.
+
+### Verified correct — do NOT "fix" these
+
+`/init` now writes the standing test rule by itself, so Brent's "may already be there" note is
+**right** · `/exit` is a real command · skill hot-reload works with no restart · `context: fork`
+runs and returns · `model: haiku` really pins the subagent (`claude-haiku-4-5` bills on its own
+`/usage` line) · Sonnet sits at **position 4** with no prices shown and ←/→ effort, exactly as the
+preamble says · **Lab 3 step 5's restore works and Lab 5 then reports `10 passed, 4 failed`
+through the MCP server — the load-bearing dependency is proven end-to-end** · Lab 2's PreToolUse
+hook blocks the edit and its stderr steers Claude to suggest the change instead · PostToolUse logs
+Claude's Bash calls and *not* the user's `!` commands · Lab 4's `[tool] Bash` on a read-only `ls`,
+the un-pre-approved Write refusal, the gatekeeper allow/deny lines · Lab 5's skeleton message,
+silent stdio start (no pydantic warning — the pin holds), `.mcp.json`, *Pending approval*, and
+**"Called project-health 2 times"** · mcp pinned at **1.29.0**, FastMCP imports · Lab 5 really does
+have **three** `@mcp.tool()` functions (a 4th grep hit is a comment).
+
+### Not re-tested this run
+
+Lab 2 step 5's `claude --dangerously-skip-permissions` launch — the QA agent's own safety classifier
+refused to type it, and working around that was not appropriate. The **hook mechanism** it exists to
+demonstrate was verified in auto mode instead (block + stderr + untouched file). The
+bypass-specific claim still rests on the 08-21 run. **Worth one manual check before class.**
+
+### Screenshots
+
+All nine outstanding images captured live and wired in: `ccadv16` (forked triage), `ccadv17` (`--bg`
+output), `ccadv18` (agent view), `ccadv19` (goal set), `ccadv20` (goal verdict + reason), `ccadv21`
+(goal status), `ccadv22` (loop scheduled), `ccadv23` (loop cancelled), `ccadv24` (headless goal).
+Captured ~1565px wide against the ~1003px house size, so they downscale crisply. Plus
+`evidence-fullscreen-prompt.png` (not referenced by labs.md — evidence for the step-1 finding).
+
+### Timing and prose — the one thing this run did NOT fix
+
+Measured, not estimated. Reading alone, at 200 wpm, before a single command is typed:
+
+| Lab | Words | Reading | Stated | Verdict |
+|---|---|---|---|---|
+| 1 | ~1,500 | ~7.5 min | 10-12 | **over** — reading + ~2 min of model waits ≈ the whole budget |
+| 2 | ~1,030 | ~5.2 min | 10-12 | tight |
+| 3 | ~1,320 | ~6.6 min | 10-12 | **over** |
+| 4 | ~1,520 | ~7.6 min | 10-12 | **over** |
+| 5 | ~1,040 | ~5.2 min | 10-12 | tight |
+
+Target is 400-600 words/lab; every lab is 1.7-3.8x that, and Rev 1.16 adds ~250 words to Labs 1
+and 3. Model-wait time measured live: `/init` 44s · `/triage` 18s · subagent 10s · ultrathink 14s ·
+`/goal` 16s · `--bg` ~35s · Lab 4 runs 3-11s each · Lab 5 tool calls 12-18s. **Labs 1, 3 and 4 will
+not fit 12 minutes for a slow reader.** Deferred deliberately — trimming is a content pass, not a QA
+fix, and it should not ride along with defect repairs. Candidates: Lab 1 steps 10/12 (217w/179w),
+Lab 3 step 11 (271w), Lab 4 steps 6/10 (262w/190w).
+
 ## labs 1.15 — 08/24/26 — Reconciled after a pull replaced the working tree with the remote lineage
 
 A `git pull` on 08/24 brought down remote commits `38d808f`/`650150b` (Brent's GitHub edits of

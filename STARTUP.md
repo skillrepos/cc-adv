@@ -104,6 +104,21 @@ You should see an indicator that the model was set to a *Sonnet* model with *med
 
 <br><br>
 
+## Step 5: Make sure you're in auto mode
+**What we're doing:** Checking the permission mode, and switching it if needed.  
+**Why:** The labs assume *auto mode* — and a brand-new Codespace does not start there.
+
+**Action:** Look at the bottom-left of the Claude Code prompt.
+
+- If it reads `⏵⏵ auto mode on` — you're set.
+- If it reads `⏸ manual mode on` — press **Shift+Tab** until it reads `⏵⏵ auto mode on`.
+
+Claude Code normally starts in **auto mode** on Pro, Max and Team plans. The exception is the
+**first** session after a fresh install — and a brand-new Codespace counts as one — which starts in
+**manual**. Later sessions pick up auto on their own, so this is usually a one-time step.
+
+<br><br>
+
 ### You're now ready for the labs!
 
 <br><br>
