@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, CI automation, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.21 - 08/24/26
+## Revision 1.23 - 08/24/26
 
 <br><br>
 
@@ -228,14 +228,14 @@ Skim the plan — Lab 3 will *execute* this exact fix. (Ctrl+O shows the detaile
 <br><br>
 
 ## 10: Send a Worker to the Background
-`claude --bg` starts a **detached session** that keeps working while you do something else — and with nobody there to click "Yes", it must be pre-approved up front: **mode governs edits; `--allowedTools` governs commands.**
+`claude --bg` starts a **detached session** that keeps working while you do something else. With nobody there to click "Yes", a worker must never be able to *wait*: `--permission-mode dontAsk` **auto-denies** anything not pre-approved instead of queuing a question nobody will answer, and `--allowedTools` lists exactly what the job needs — here the test command and the report write.
 
 **Action:** In your **terminal tab** (leave Claude running), run:
 ```bash
-claude --bg "Run python3 app/test_app.py and write a markdown summary of the failures to bg_report.md - one line per failure naming the contract each violates. Do not run any git commands." --permission-mode acceptEdits --allowedTools "Bash(python3:*)"
+claude --bg "Run python3 app/test_app.py and write a markdown summary of the failures to bg_report.md - one line per failure naming the contract each violates. python3 is on your PATH - run the tests directly and do not probe the environment first. Do not run any git commands." --permission-mode dontAsk --allowedTools "Bash(python3:*),Write"
 ```
 
-You get a session ID and management commands back immediately. (The prompt forbids git because your CLAUDE.md rule won't reach the worker's fresh checkout — say it in the prompt.)
+You get a session ID and management commands back immediately. (The prompt forbids git because your CLAUDE.md rule won't reach the worker's fresh checkout — and an allowlist matches **every segment** of a compound command, so one improvised `git` or `find` would otherwise stall the whole run.)
 
 ![Background agent started](./images/ccadv17.png?raw=true "Background agent started")
 
@@ -247,6 +247,9 @@ You get a session ID and management commands back immediately. (The prompt forbi
 ```bash
 claude agents
 ```
+
+![Agent view — worker completed](./images/ccadv28.png?raw=true "Agent view — worker completed")
+
 (Arrow to the worker to watch it; **Esc** leaves the view.) Then:
 ```bash
 cat bg_report.md
@@ -255,7 +258,9 @@ cat .claude/worktrees/*/bg_report.md
 
 The first `cat` **fails** — and the second finds your four failures. Before writing anything, `--bg` gave the worker **its own worktree checkout** on a `worktree-<name>` branch; your `main` was never touched. `claude rm <id>` removes a session *and* its worktree. *(Slides: "Worktree Isolation".)*
 
-![Agent view](./images/ccadv18.png?raw=true "Agent view")
+> **If agent view ever shows a worker "awaiting input"** — the screenshot below is one, stuck on a git approval because it was launched in a mode that can still ask — select it and press **Space** to answer from the peek panel, or `claude rm <id>` it. That hang is exactly what `dontAsk` exists to prevent.
+
+![A worker stuck awaiting input](./images/ccadv18.png?raw=true "A worker stuck awaiting input")
 
 ---
 <br><br>
