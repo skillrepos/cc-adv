@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, CI automation, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.19 - 08/24/26
+## Revision 1.20 - 08/24/26
 
 <br><br>
 
@@ -75,7 +75,7 @@ Add this standing rule to CLAUDE.md: Never run git commit or git push in this re
 
 > **Where each kind of knowledge lives:** shared rules everyone on the repo should follow → CLAUDE.md; personal facts Claude learns about how *you* work → auto-memory. `/memory` shows the full hierarchy; we won't walk it here.
 
-![Add rule and memory](./images/ccadv14.png?raw=true "Add rule and memory")
+![Add rule](./images/ccadv26.png?raw=true "Add rule")
 
 ---
 <br><br>
