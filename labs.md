@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
-## Go beyond the basics — custom commands, hooks, CI automation, the Agent SDK, and your own MCP server
+## Go beyond the basics — advanced delegation, hooks, loops, CI automation, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.12 - 08/22/26
+## Revision 1.15 - 08/24/26
 
 <br><br>
 
@@ -21,24 +21,24 @@
 >
 > You should see an indicator that the model was set to a *Sonnet* model (currently *Sonnet 5* / `claude-sonnet-5` — the exact version shown may be newer) with *medium* effort. Note: your `/model` selection is saved as the default for new sessions; press `s` in the model list to set it for the current session only.
 >
->
 <br><br>
 
-**NOTE:** This course assumes you've completed the introductory Claude Code workshop (or equivalent). Steps that exercise something from that course are marked *(recap)* and kept quick. 
+**NOTE:** This course assumes you've completed the introductory Claude Code workshop (or equivalent). Steps that exercise something from that course are marked *(recap)* and kept quick.
+
 <br><br>
 
 ---
 <br><br>
 
-# Lab 1: Advanced Context, Custom Commands & Extended Thinking
+# Lab 1: Advanced Delegation — Right Model, Right Context, Right Worker
 ## Lab Purpose
-Build project context on a real codebase, a parameterized custom command, a skill, and a low-cost Haiku subagent, and use extended thinking. 
+Climb the delegation ladder: a parameterized command, a hot-reloaded skill, a forked skill, a Haiku-pinned subagent, and finally a fully detached background agent you manage from the CLI.
 
 ---
 <br><br>
 
-## 1: Start Claude and Scout the Codebase *(recap)*
-The repo holds a Flask to-do API in `app/` (its test suite fails in 4 places *by design*), Agent SDK skeletons in `sdk/`, and an MCP server skeleton in `mcpserver/`.
+## 1: Set Up in One Pass *(recap)*
+The repo holds a Flask to-do API in `app/` (its test suite fails in 4 places *by design*), Agent SDK skeletons in `sdk/`, and an MCP server skeleton in `mcpserver/`. The intro course covered `/init`, CLAUDE.md and auto-memory in depth — here we just lay the context the rest of the day builds on.
 
 **Action:** In the terminal, start Claude:
 ```bash
@@ -47,79 +47,27 @@ claude
 
 Then type:
 ```
-Give me a one-paragraph overview of this repo: what's in app/, sdk/, and mcpserver/, and how do I run the tests?
-```
-
-![Overview](./images/ccadv11.png?raw=true "Overview")
-
-
----
-<br><br>
-
-## 2: Generate the Project Context File *(recap)*
-CLAUDE.md is read at the start of every session.
-
-**Action:** Type:
-```
 /init
 ```
 
 ![claude.md](./images/ccadv12.png?raw=true "claude.md")
 
----
-<br><br>
-
-## 3: Persist a Rule, a Memory *(recap)*
-One fact, two homes: a shared rule in CLAUDE.md (committed, repo-wide) and a personal fact in *auto-memory* (a MEMORY.md per project, per user).
-
-**Action:** First, the shared rule. Type into Claude:
+When it finishes, type:
 ```
 Add this standing rule to CLAUDE.md: The test suite is run with python3 app/test_app.py. Never edit app/test_app.py - it defines the correct contract.
 ```
-(Note that the rule may already be in the CLAUDE.md file.  If so, that's ok.)
+(Note that the rule may already be in the CLAUDE.md file. If so, that's ok.)
 
-In **manual** mode, approve the edit; in **auto** mode (the default) it just lands. Either way, confirm the rule is now in `CLAUDE.md`.
+Confirm the rule landed in `CLAUDE.md`. Labs 2-5 all lean on it.
 
-**Action:** Now a memory. Type:
-```
-Remember that when I ask for code reviews in this repo, I want short, test-first explanations.
-```
+> **From the intro course, still true:** shared+enforced rules → CLAUDE.md; personal learned facts → auto-memory (`/memory` shows the hierarchy). We won't walk it again.
 
 ![Add rule and memory](./images/ccadv14.png?raw=true "Add rule and memory")
 
-
-Watch for the saved-memory confirmation, then verify where it went (in the codespace):
-```
-! cat ~/.claude/projects/-workspaces-cc-adv/memory/MEMORY.md
-```
-(Running locally? The directory under `~/.claude/projects/` is named after your repo path.)
-
-> **Rule of thumb:** *enforced and shared* → CLAUDE.md; *personal and learned* → auto-memory (per user, per machine; the first ~200 lines load each session).
-
 ---
 <br><br>
 
-## 4: View the memory files hierarchy.
-
-
-**Action:** Now see how the layers stack. Type:
-```
-/memory
-```
-
-The view shows **Auto-memory: on** as a status line, then three entries: **1. Project instructions** (*Checked in at ./CLAUDE.md*), **2. User instructions** (*Saved in ~/.claude/CLAUDE.md*), and **3. Open auto-memory folder**. 
-
-![memory hierarchy](./images/ccode228.png?raw=true "memory hierarchy")
-
-Type `1` to see the contents of CLAUDE.md.
-
-![Viewing CLAUDE.md](./images/ccadv13.png?raw=true "Viewing CLAUDE.md")
-
----
-<br><br>
-
-## 5: Create a Real Custom Command
-
+## 2: Create a Real Custom Command
 **Action:** In a separate terminal tab (keep Claude running), create the folders:
 ```bash
 mkdir -p .claude/commands .claude/skills
@@ -160,8 +108,8 @@ This file demonstrates four advanced features:
 ---
 <br><br>
 
-## 6: Run the Command on the Buggy API
-**Action:** Claude Code loads custom commands at **startup**, so your running session doesn't know `/triage` yet (it would say *"Unknown command: /triage"*). 
+## 3: Run the Command on the Buggy API
+**Action:** Claude Code loads custom commands at **startup**, so your running session doesn't know `/triage` yet (it would say *"Unknown command: /triage"*).
 
 Restart Claude — type `/exit`, then `claude`. Then type:
 
@@ -176,7 +124,7 @@ Git context and CLAUDE.md are injected automatically. The triage should flag the
 ---
 <br><br>
 
-## 7: Turn the Command Into a Skill — Without Restarting
+## 4: Turn the Command Into a Skill — Without Restarting
 Custom commands have **merged into skills**: `.claude/commands/triage.md` and `.claude/skills/triage/SKILL.md` both create `/triage`, and the frontmatter means the same in both.
 
 **Action:** In your other terminal tab (leave Claude running) enter the following:
@@ -197,7 +145,30 @@ It works: **Claude Code watches skill directories and picks up adds, edits and r
 ---
 <br><br>
 
-## 8: Delegate to a Cheaper Model — a Haiku Subagent
+## 5: Fork the Skill — Same Context, Separate Worker
+Hot-reload means you can change *how* a skill executes mid-session too. `context: fork` runs the skill in its own **forked subagent**: it inherits your full conversation (and the warm prompt cache), but its work happens outside your main context.
+
+**Action:** In your terminal tab, edit `.claude/skills/triage/SKILL.md` and add one line to the frontmatter:
+
+```md
+context: fork
+```
+
+**Action:** Back in Claude — still no restart — run it a third time:
+```
+/triage app/auth.py
+```
+
+Watch the transcript: the triage now runs as a delegated task and only the report returns. Your main conversation didn't absorb the file reads and git output — in step 11, `/context` will show the difference.
+
+> **The third execution dial:** `background: true` detaches the skill entirely — fire and keep typing. Fork = *same conversation, separate workspace*. Background = *separate everything, result arrives when ready*.
+
+![Forked triage](./images/ccadv16.png?raw=true "Forked triage")
+
+---
+<br><br>
+
+## 6: Delegate to a Cheaper Model — a Haiku Subagent
 Verbose output stays in the subagent — only a summary returns — and `model:` pins it to a cheaper, faster model.
 
 **Action:** In your terminal tab, create the agents folder:
@@ -224,16 +195,16 @@ disallowedTools: Write, Edit
 ---
 <br><br>
 
-## 9: Restart and run the subagent.
+## 7: Restart and Run the Subagent
 
-**Action:** Switch back to Claude and restart to ensure the new agent is picked up and then run it.
+**Action:** Switch back to Claude and restart to ensure the new agent is picked up, and then run it.
 
 Restart — `/exit`, then `claude`. Then type:
 ```
 Use the test-scout subagent to run the test suite and summarize the failures.
 ```
 
-The subagent runs in the background and you get a compact report (10 passed / 4 failed with causes), run on Haiku, with the full test output kept out of your main context. 
+The subagent runs in the background and you get a compact report (10 passed / 4 failed with causes), run on Haiku, with the full test output kept out of your main context.
 
 > **`model:` values:** an alias (`haiku`, `sonnet`, `opus`, `fable`), a full model string (`claude-haiku-4-5`), or `inherit` (the default). Same field in command frontmatter; `--model` for headless/CI; `ClaudeAgentOptions(model="haiku")` in the SDK (Lab 4). **Cheap scouts, smart supervisor.**
 
@@ -242,19 +213,66 @@ The subagent runs in the background and you get a compact report (10 passed / 4 
 ---
 <br><br>
 
-## 10: Use Extended Thinking for a Planning Task
-The **effort level** in `/model` is your session-wide dial; `ultrathink` anywhere in a prompt asks for deeper reasoning **on that turn only**.
-
-> **What `ultrathink` does:** Claude Code adds an in-context instruction to think harder; the effort level sent to the API is *unchanged*, so it stacks on whatever you set. **Not** keywords: "think", "think hard", "think more" — ordinary prompt text.
+## 8: Two Dials of Thinking
+The **effort level** is your session-wide dial; `ultrathink` anywhere in a prompt asks for deeper reasoning **on that turn only** — an in-context nudge that stacks on whatever effort is set. ("think", "think hard", "think more" are *not* keywords — just ordinary prompt text.)
 
 **Action:** Type the following, then hit *Ctrl+o* while it runs to watch the thinking stream:
 ```
 ultrathink: Propose a refactoring plan for app/ that fixes the 400/404 contract violations without changing test_app.py. Consider at least two approaches and recommend one. Plan only - do not edit files.
 ```
 
+**Action:** Now check the session dial. Type `/model` and use the **left/right arrow keys** to see the effort options — **low · medium · high · xhigh · max** — leave it on *medium* and hit *Esc*.
+
+> **Also:** `/effort` sets it without the picker, and `/effort ultracode` is a Claude Code *setting*, not a model level — `xhigh` plus a dynamic multi-agent workflow. **Changing effort mid-session invalidates your prompt cache** (keyed by model *and* effort), so set both once, at the top of a session.
+
 ![Extended thinking](./images/ccadv3.png?raw=true "Extended thinking")
 
-You can use *Ctrl+o* to get back to the main claude interface.
+---
+<br><br>
+
+## 9: Send a Worker to the Background
+Everything so far ran inside your session. `claude --bg` starts a **background agent**: a whole separate session, detached from any terminal, that keeps working while you do something else.
+
+**Action:** In your **terminal tab** (leave your interactive session running — they coexist fine), run:
+```bash
+claude --bg "Run python3 app/test_app.py and write a markdown summary of the failures to bg_report.md - one line per failure naming the contract each violates" --permission-mode acceptEdits
+```
+
+You get back a session ID and the management commands, immediately:
+
+```
+backgrounded · b6cd8417
+  claude agents             list sessions
+  claude attach b6cd8417    open in this terminal
+  claude logs b6cd8417      show recent output
+  claude stop b6cd8417      stop this session
+```
+
+An unattended session has nobody to click "Yes" — that's why the `--permission-mode acceptEdits` is there, the same rule Lab 3 taught for `-p`.
+
+![Background agent started](./images/ccadv17.png?raw=true "Background agent started")
+
+---
+<br><br>
+
+## 10: Manage the Fleet
+**Action:** Still in the terminal tab, list your sessions:
+```bash
+claude agents
+```
+
+**Agent view** shows every session — your interactive one and the background worker — with its state. Arrow to the background session to watch it; hit *q* to leave the view. Then confirm the work landed:
+```bash
+cat bg_report.md
+```
+
+You should see the four failures summarized. If the worker is still running, `claude logs <id>` shows its recent output without attaching; `claude stop <id>` ends it.
+
+> **When two workers edit the same files — worktrees.** Today's worker only wrote a report, but parallel *editing* agents would collide. Claude Code's answer is **git worktrees**: `claude -w <name>` (or `--worktree`) starts a session in its own working copy under `.claude/worktrees/<name>/`, on a branch named `worktree-<name>` — and a custom subagent with `isolation: worktree` in its frontmatter *always* edits in a disposable worktree, which is removed automatically if the agent finishes without changes. Same repo, separate filesystems, merge when you're ready.
+
+> **Why this matters:** subagents die with your session; a background agent is a peer. This is the rung right below **agent teams** (peers that message each other — experimental, `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`) and **dynamic workflows** (a script orchestrating dozens of agents — the `ultracode` keyword). Slides cover both; they're heavy for a shared classroom, so try them on your own account.
+
+![Agent view](./images/ccadv18.png?raw=true "Agent view")
 
 ---
 <br><br>
@@ -262,39 +280,40 @@ You can use *Ctrl+o* to get back to the main claude interface.
 ## 11: See What Your Context Costs *(recap)*
 Everything you added in this lab rides along in every request.
 
-**Action:** Type:
+**Action:** Back in your **interactive Claude session**, type:
 ```
 /context
 ```
 
-Find how much of the window is taken by each category: **System prompt**, **System tools**, **Custom agents**, **Memory files** (that's your `CLAUDE.md` plus auto-memory), **Skills**, and **Messages** (the conversation itself).
+Find how much of the window is taken by each category: **System prompt**, **System tools**, **Custom agents**, **Memory files** (that's your `CLAUDE.md` plus auto-memory), **Skills**, and **Messages**. Note what the fork in step 5 kept *out* of Messages.
 
-> **Companion:** `/usage` answers "what have I spent?" and on a paid plan breaks usage down **by attribution** — skills, subagents, plugins, each MCP server. (Optional) Try `/usage` now.
+> **Companion:** `/usage` answers "what have I spent?" and breaks usage down **by attribution** — skills, subagents, plugins, each MCP server. Look for the `claude-haiku-4-5` line from step 7. Remember it in Lab 5.
 
 ![context usage](./images/ccode224.png?raw=true "context usage")
-
-Use `Esc` to get back to the main Claude interface.
 
 ---
 <br><br>
 
 ## 12: Exit
 
-**Action:** In prep for the next lab and a fresh start, type `/exit` to exit Claude Code.
+**Action:** In prep for the next lab and a fresh start, type `exit` to exit Claude Code.
 
 ```
 exit
 ```
 
 ## Lab Summary
-✅ You've successfully:
-- Generated CLAUDE.md for a multi-directory codebase
-- Persisted a shared rule and a personal auto-memory; viewed both with `/memory`
+✅ You've climbed the delegation ladder:
+- One-pass setup: CLAUDE.md + the standing test rule the whole day leans on
 - Built `/triage` with `$ARGUMENTS`, inline bash context, `@file` references and scoped `allowed-tools`
 - Converted it to a **skill** — hot-reloaded without a restart
+- Forked it with `context: fork` — full conversation, separate workspace
 - Delegated verbose test output to a `model: haiku` subagent
-- Used `ultrathink` and set session-level effort
-- Audited your context budget
+- Used `ultrathink` and the session effort dial
+- Detached a worker entirely with `claude --bg` and managed it with `claude agents` / `logs` / `stop`
+- Audited what all of it costs with `/context` and `/usage`
+
+> **The decision rule, in one breath:** **subagent** = delegated specialist inside your workflow · **fork** = keep noisy work out of your primary context · **background agent** = independent concurrent session · **worktree** = independent filesystem changes · **cheaper model** = match cost and intelligence to the task.
 
 <br><br>
 ---
@@ -304,7 +323,7 @@ exit
 
 # Lab 2: Hooks: Enforcing Policy at the Tool Boundary
 ## Lab Purpose
-Create a PreToolUse hook that blocks edits to a protected file and a PostToolUse hook that logs every bash command, then watch both fire — even in auto and bypass-permissions modes. 
+Create a PreToolUse hook that blocks edits to a protected file and a PostToolUse hook that logs every bash command, then watch both fire — even in auto and bypass-permissions modes.
 
 ---
 <br><br>
@@ -530,124 +549,173 @@ exit
 ---
 <br><br>
 
-# Lab 3: Headless Mode & CI Automation
+# Lab 3: Loops Instead of Prompts — `/goal` and `/loop`
 ## Lab Purpose
-Use `claude -p` as a Unix-style building block — pipe data through it, get JSON out, loop over files — then author the GitHub Actions workflows that run the same engine in CI with `anthropics/claude-code-action@v1`. Estimated time: 10-12 minutes.
+Stop driving Claude one prompt at a time. Use `/goal` to keep a session working until a condition holds, `/loop` to re-run work on a schedule, and `claude -p` to run the same loop with no session at all — then read how GitHub Actions moves it off your machine entirely. Estimated time: 10-12 minutes.
 
-**NOTE: This whole lab runs in a regular terminal — no interactive Claude session needed.**
+**NOTE: Steps 1-8 run in an interactive Claude session. Step 9 runs in a regular terminal. Steps 10-11 are reading.**
+
+> **Two kinds of loop, and this lab does both.** An **inner loop** works one task until the result is good enough — `/goal`. An **outer loop** re-runs a job on a schedule — `/loop`. Steps 9-11 are those same two loops with different drivers.
 
 ---
 <br><br>
 
-## 1: Pipe Input Through Claude *(recap)*
-`-p` (print) mode reads stdin, processes it, prints the result, and exits.
+## 1: Work on a Throwaway Branch
+`/goal` is about to change real files. A branch keeps those changes out of the way — Lab 5 still needs this project's tests to fail.
 
 **Action:** In a terminal, run:
 ```bash
-cat app/app.py | claude -p "Summarize what this code does in two sentences"
+git switch -c loop-lab
 ```
 
-You get just the answer — no session UI, no prompts.
-
-![pipe input](./images/cc-se29.png?raw=true "pipe input")
-
----
-<br><br>
-
-## 2: Get Structured JSON Output
-JSON output gives you the result plus metadata: session ID, cost, turns, duration.
-
-**Action:** Run:
+Then start Claude in that same directory:
 ```bash
-claude -p "Summarize this project in one sentence" --output-format json
+claude
 ```
-
-Find the `result`, `session_id`, `total_cost_usd`, and `num_turns` fields.
-
-![json output](./images/cc-se31.png?raw=true "json output")
 
 ---
 <br><br>
 
-## 3: Extract Fields with jq
-**Action:** Run:
+## 2: Set a Goal
+`/goal` sets a **completion condition**. After every turn a small fast model (Haiku) checks whether the condition holds. If it doesn't, Claude takes another turn on its own instead of handing control back to you.
+
+**Action:** At the Claude prompt, type:
+```
+/goal python3 app/test_app.py reports 14 passed, 0 failed and exits 0. Never edit app/test_app.py - it defines the contract.
+```
+
+Setting the goal **starts a turn immediately** — you do not send a second prompt. Watch for the `◎ /goal active` indicator, and let it run.
+
+![goal set](./images/ccadv19.png?raw=true "goal set")
+
+> **This is Lab 1's plan, executed.** In Lab 1 you had Claude *plan* a fix for the 400/404 contract violations. Here it does the work and decides for itself when it's finished.
+
+---
+<br><br>
+
+## 3: Watch the Evaluator's Verdicts
+The transcript shows every verdict the evaluator returns: **not yet met** (Claude keeps going, using the reason as guidance), **met** (the goal clears), or **impossible** (it clears and records why).
+
+**Action:** Press *Ctrl+O* to expand the reasoning and see the reason behind the latest verdict.
+
+![goal verdicts](./images/ccadv20.png?raw=true "goal verdicts")
+
+> **The evaluator has no tools.** It only judges what Claude has already put in the conversation. That's why the condition names a command whose output lands in the transcript — "the code is clean" would be unjudgeable.
+
+---
+<br><br>
+
+## 4: Check Goal Status
+**Action:** When the run settles, type `/goal` with no arguments:
+```
+/goal
+```
+
+You get the condition, how long it ran, turns evaluated, token spend, and the evaluator's most recent reason.
+
+![goal status](./images/ccadv21.png?raw=true "goal status")
+
+---
+<br><br>
+
+## 5: Confirm the Work, Then Put It Away
+**Action:** In a terminal (not the Claude session), run:
 ```bash
-claude -p "How many tests are in app/test_app.py?" --output-format json | jq '{result: .result, cost: .total_cost_usd, turns: .num_turns}'
+python3 app/test_app.py
+git diff --stat
 ```
 
-![jq extraction](./images/cc-se32.png?raw=true "jq extraction")
-
-**Note:** `--output-format json` also supports `--json-schema`, forcing output to match a schema you define — the result lands in a `structured_output` field. `--output-format stream-json` emits events in real time for long-running automation.
-
----
-<br><br>
-
-## 4: A Loop Instead of a Prompt
-A loop gives you one bounded, repeatable call per item.
-
-**Action:** Run:
+You should see `14 passed, 0 failed`, and a diff touching `app/app.py` only — **not** `app/test_app.py`. Now commit it to the throwaway branch and go back:
 ```bash
-for f in app/*.py; do
-  echo "Summarizing $f..."
-  echo "## $f" >> summaries.md
-  cat "$f" | claude -p "Summarize this file in one sentence" >> summaries.md
-done
+git add -A && git commit -m "goal: fix 400/404 contract violations"
+git switch -
 ```
 
-`Summarizing $f...` prints to your terminal; the summaries are redirected into `summaries.md`. Each pass is an independent headless run. (`>>` *appends* — delete `summaries.md` before re-running or entries pile up.)
-
-![first loop](./images/cc-se36.png?raw=true "first loop")
+`python3 app/test_app.py` should report `10 passed, 4 failed` again — Lab 5 needs those failures. The fix is still on `loop-lab` if you want to look at it later.
 
 ---
 <br><br>
 
-## 5: Inspect the Loop's Output
-**Action:** Run:
+## 6: Schedule a Repeating Prompt with `/loop`
+That was the inner loop. `/loop` is the outer one: it re-runs a prompt on an interval for as long as the session stays open.
+
+**Action:** Back in the Claude session, type:
+```
+/loop 2m append the current UTC time and the current test pass/fail counts as one line in beat.md
+```
+
+Claude converts the interval to a cron expression and calls the `CronCreate` tool. You'll see a confirmation naming the cadence and an 8-character job ID:
+
+```
+● CronCreate(*/2 * * * * : append the current UTC time…)
+  ⎿  Scheduled 8db547d2 (Every 2 minutes)
+```
+
+![loop scheduled](./images/ccadv22.png?raw=true "loop scheduled")
+
+> **Leave it running and move to step 7 while it ticks.** Supported units are `s`, `m`, `h`, `d`. Seconds round up to a minute — cron has one-minute granularity. Fire times carry a deterministic jitter, so an interval job can land up to half its interval late.
+
+---
+<br><br>
+
+## 7: Give Bare `/loop` a Default Prompt
+`/loop` with **no prompt** runs a built-in maintenance prompt — continue unfinished work, tend the branch's PR, then cleanup passes. A `loop.md` file replaces that default with your own.
+
+**Action:** Create `.claude/loop.md` with these contents, and save:
+
+```markdown
+Run python3 app/test_app.py. If anything fails, report the failing test
+names and the contract each one violates - do not fix them.
+If everything passes, say so in one line.
+```
+
+Now a bare `/loop` in this project runs *that* instead of the built-in prompt. Project scope (`.claude/loop.md`) wins over user scope (`~/.claude/loop.md`), and edits take effect on the next iteration — you can refine the instructions while a loop is running.
+
+---
+<br><br>
+
+## 8: Inspect and Cancel the Loop
+Scheduled tasks are **session-scoped**: they die with the conversation, restore on `claude --resume`, and expire after 7 days.
+
+**Action:** Check that the loop has fired at least once:
+```
+cat beat.md
+```
+
+Then ask for the task list and cancel it in plain English:
+```
+what scheduled tasks do I have? cancel the beat.md one
+```
+
+Claude uses `CronList` and `CronDelete` under the hood. (*Esc* while a loop is waiting also clears the pending wakeup.)
+
+![loop cancelled](./images/ccadv23.png?raw=true "loop cancelled")
+
+---
+<br><br>
+
+## 9: The Same Loop With No Session at All
+`/goal` also works headless — one invocation runs the whole loop to completion. This is the unit that CI, cron and scripts multiply.
+
+**Action:** Exit Claude (*Ctrl+D*) and run in the terminal:
 ```bash
-cat summaries.md
+claude -p "/goal beat.md exists and its last line names the current test pass/fail counts" \
+  --permission-mode acceptEdits --output-format json | jq '{result, num_turns, total_cost_usd}'
 ```
 
-You should see a heading and a one-sentence summary for each `.py` file in `app/`.
+`-p` works, prints, and exits. `--output-format json` wraps the answer with `session_id`, `num_turns` and `total_cost_usd` — every run scriptable and auditable.
 
-![loop output](./images/cc-se37.png?raw=true "loop output")
+![headless goal](./images/ccadv24.png?raw=true "headless goal")
+
+> **`-p` has no human to click "Yes."** Interactive sessions start in auto mode on Pro/Max/Team, but `claude -p` and the Agent SDK still start in `default` — so anything unattended must pre-approve its permissions with `--permission-mode` or `--allowedTools`. Nothing about the August 2026 auto-mode default changes that.
 
 ---
 <br><br>
 
-## 6: Let Headless Runs Make Changes
-`-p` mode has no human to click "Yes": anything not pre-approved aborts or is denied, so automation must declare its permissions up front.
+## 10: The Same Engine on GitHub's Runners
+Moving the loop onto someone else's machine: `claude-code-action@v1` runs this exact engine in CI. (Reading only — the workshop repo isn't yours to wire up, so this is your reference; step 11 ends with how to try it for real.)
 
-> **The August 2026 auto-mode default does not rescue you here.** Interactive sessions start in auto mode on Pro/Max/Team, but `claude -p` and the Agent SDK start in `default` — so pre-approving permissions stays mandatory for anything unattended.
-
-**Action:** Run:
-```bash
-claude -p "Create a file named pipeline.txt containing the single word OK" --permission-mode acceptEdits
-```
-
-Verify with `cat pipeline.txt`. `acceptEdits` auto-approves file writes; `--allowedTools "Bash,Read,Edit"` is the finer-grained alternative (and supports rules like `Bash(git diff *)`). The same idea returns in code in Lab 4.
-
-> **Two more CI flags.** `--permission-mode dontAsk` runs *only* what your `permissions.allow` rules and the read-only command set cover, denying the rest instead of prompting. `--bare` skips auto-discovery of hooks, skills, plugins, MCP servers and CLAUDE.md, making a CI run reproducible across machines.
-
-![headless with accept edits](./images/cc-se38.png?raw=true "headless with accept edits")
-
----
-<br><br>
-
-## 7: Create the Workflow Directory
-GitHub discovers workflows only in `.github/workflows/`.
-
-**Action:** Run:
-```bash
-mkdir -p .github/workflows
-```
-
----
-<br><br>
-
-## 8: Author the @claude Responder Workflow
-The canonical pattern: a teammate comments `@claude fix the TypeError in the dashboard` on a PR, and Claude analyzes, implements and pushes on GitHub's runners.
-
-**Action:** Create `.github/workflows/claude.yml` with these contents, and save:
+**The responder.** With **no `prompt:`**, the action auto-detects *interactive mode*: a teammate comments `@claude fix the TypeError` on a PR or issue, and Claude answers on GitHub's runners:
 
 ```yaml
 name: Claude Code
@@ -663,19 +731,9 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          # No prompt: the action auto-detects interactive mode and
-          # responds to @claude mentions in comments
 ```
 
-![workflow file](./images/cc-se76.png?raw=true "workflow file")
-
----
-<br><br>
-
-## 9: Author a Scheduled Automation Workflow
-With a `prompt:`, the action auto-detects *automation mode* — it runs immediately on the trigger instead of waiting for a mention.
-
-**Action:** Make a new file `.github/workflows/daily-report.yml` with:
+**The outer loop in CI.** With a **`prompt:`**, it auto-detects *automation mode* and runs immediately on the trigger — and a `schedule:` trigger makes it the same outer loop as `/loop`, on infrastructure that doesn't need your laptop open:
 
 ```yaml
 name: Daily Report
@@ -695,51 +753,37 @@ jobs:
             --model sonnet
 ```
 
-**Save the file.** `claude_args` is a passthrough to the same CLI flags you used in steps 1-6.
+`claude_args` is a passthrough to the same CLI flags you used in step 9 — nothing new to learn:
 
 | In claude_args | You used it as |
 |---|---|
-| `--max-turns 5` | the turn cap idea (also `max_turns` in Lab 4's SDK) |
-| `--allowedTools "Read,Edit,Bash"` | `--allowedTools` in step 6 |
+| `--max-turns 5` | the turn cap (also `max_turns` in Lab 4's SDK) |
+| `--allowedTools "Read,Edit,Bash"` | pre-approving an unattended run |
 | `--model sonnet` | `/model` |
 | `--append-system-prompt "..."` | custom instructions per workflow |
 
-The action also respects your repo's CLAUDE.md, so the Lab 1 context works in CI too.
-
-![workflow file](./images/cc-se77.png?raw=true "workflow file")
-
 ---
 <br><br>
 
-## 10: Have Headless Claude Review Your Workflow
-**Action:** Run:
-```bash
-cat .github/workflows/claude.yml | claude -p "Explain this GitHub Actions workflow: what triggers it, what the action does, what secrets it needs, and one risk to consider."
-```
+## 11: Know the Bounds
+Every loop needs a stop condition, and every unattended loop needs a budget. (Reading only)
 
-![claude explains](./images/cc-se78.png?raw=true "claude explains")
+- **Bound the goal.** A condition can carry its own limit — `…or stop after 20 turns`. Without one, only the evaluator ends the run.
+- **Bound the job.** `--max-turns` in `claude_args` plus a workflow-level `timeout-minutes`.
+- **Where `/loop` stops reaching.** Its tasks fire only while the session is open and idle. To outlive a session, use cloud Routines, a Desktop scheduled task, or a `schedule:` trigger.
+- **CI security baseline.** The key comes only from `${{ secrets.ANTHROPIC_API_KEY }}`; the GitHub App needs Contents, Issues and Pull requests and nothing more; review Claude's PRs like any contributor's.
 
----
-<br><br>
-
-## 11: Know the Security Basics
-CI agents act with real credentials on real repos. (Reading only)
-
-- The API key comes **only** from `${{ secrets.ANTHROPIC_API_KEY }}` — never hardcoded.
-- The Claude GitHub App needs read/write on **Contents, Issues, Pull requests** and nothing more.
-- Bound every job: `--max-turns` in `claude_args` plus a workflow-level `timeout-minutes`.
-- Review Claude's PRs like any contributor's.
-
-> **Try it live later:** in a repo you own, run `claude` and type `/install-github-app` — it installs the Claude GitHub App and adds the `ANTHROPIC_API_KEY` secret. Commit `claude.yml`, open an issue, and comment `@claude suggest an improvement to the README`. (The workshop repo isn't yours, so this is homework.)
+> **Try it live later:** in a repo you own, run `claude` and type `/install-github-app` — it installs the app and adds the `ANTHROPIC_API_KEY` secret. Commit `claude.yml`, open an issue, and comment `@claude suggest an improvement to the README`. (The workshop repo isn't yours, so this is homework.)
 
 ## Lab Summary
 ✅ You've mastered:
-- Piping data through `claude -p`, with `--output-format json` + jq
-- A bash loop that runs Claude per file
-- Pre-approving permissions for unattended writes
-- An `@claude` responder and a scheduled workflow with `claude-code-action@v1`
-- Mapping `claude_args` to the CLI flags you know
-- The CI security baseline
+- `/goal` — an inner loop that works until a condition holds, judged by a separate evaluator model
+- Reading the evaluator's verdicts, and writing a condition it can actually judge
+- `/loop` — an outer loop on an interval, backed by `CronCreate` / `CronList` / `CronDelete`
+- `loop.md` — replacing the built-in maintenance prompt with your own
+- Running the same goal headless with `claude -p` and `--output-format json`
+- How `claude-code-action@v1` runs the same engine in CI — an `@claude` responder and a scheduled outer loop (reference)
+- Bounding a loop: stop clauses, `--max-turns`, `timeout-minutes`
 
 <br><br>
 ---
@@ -772,6 +816,8 @@ python3 -m pip install claude-agent-sdk
 ```
 
 > **`pip: command not found`?** Use the `python3 -m pip …` form above rather than a bare `pip`.
+
+> **Whose login is this?** On your own machine — or this codespace — the SDK rides your existing CLI login: the developer loop, and exactly how this lab runs. *Shipping* is different: Anthropic doesn't allow third-party products to offer claude.ai login, so anything you distribute authenticates with an `ANTHROPIC_API_KEY` in the process environment (or Bedrock / Vertex / Foundry) — the same secret Lab 3's CI workflows used.
 
 ---
 <br><br>
@@ -1138,7 +1184,7 @@ claude mcp remove project-health
 - Registered it at project scope and read the shareable `.mcp.json`
 - Approved and inspected it with `/mcp`
 - Driven it from natural language, single- and multi-tool
-- Connected the picture: commands → hooks → headless/CI → SDK → your own MCP server
+- Connected the picture: commands → hooks → loops (`/goal`, `/loop`) → headless/CI → SDK → your own MCP server
 
 <br><br>
 ---

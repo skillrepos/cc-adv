@@ -1,5 +1,413 @@
 # Changelog — cc-adv (Advanced Claude Code workshop)
 
+## labs 1.15 — 08/24/26 — Reconciled after a pull replaced the working tree with the remote lineage
+
+A `git pull` on 08/24 brought down remote commits `38d808f`/`650150b` (Brent's GitHub edits of
+08/23 15:24-15:57 EDT, made against the pre-loops lineage and self-stamped "Rev 1.12 - 08/22") plus
+`087e08f` (six new `ccadv10-15.png` Lab 1 screenshots). That overwrote the local, never-committed
+Rev 1.12/1.13/1.14 labs.md and the full CHANGELOG. **Rev 1.15 = the complete 1.14 content restored,
+with every remote hand edit folded in:**
+
+- Preamble: "Today's ladder" pricing paragraph removed; the intro NOTE trimmed to end at
+  "kept quick" (auto-mode explainer dropped).
+- "Estimated time" sentence removed from Lab 1 and Lab 2 purposes (remote did exactly these two;
+  Labs 3-5 still carry it — flag if uniformity wanted).
+- Lab 1: manual-mode branches removed from steps 1/3/7; the rule-may-already-exist note added;
+  `/exit` phrasing; "This file demonstrates…", "separate/other terminal tab" phrasings;
+  "the folder also buys you" aside and the general-purpose-fallback warning paragraph removed;
+  the `/usage` proof pointer dropped; **subagent step split** into create (6) + restart-and-run (7)
+  — Lab 1 is now **12 steps**; new screenshots wired in: `ccadv12` (init), `ccadv14` (rule),
+  `ccadv15` (triage command).
+- Lab 2: "We are working to implement this policy…" wording; the "No connection_timeout" line
+  removed from step 8.
+- **Screenshot collision resolved:** the uploaded `ccadv10-15.png` are Lab 1 captures, but the
+  loops Lab 3 (Rev 1.12) had reserved those numbers for its pending shots — Lab 3's six
+  references renumbered to **`ccadv19-24.png`** (still to capture, with `ccadv16-18` from 1.13).
+  `ccadv10/11/13.png` are on disk but currently unreferenced (their anchor steps don't exist in
+  the 1.13 structure).
+- Everything from 1.12/1.13/1.14 below is back in: loops Lab 3, delegation-ladder Lab 1 (+
+  worktrees callout, decision rule), CI-as-reading, Lab 4 auth aside.
+
+**Lesson: the 08/23 evening work and 1.14 were never committed to git — a pull could and did
+erase them. Commit labs/CHANGELOG revisions promptly after each revision lands.**
+
+Step counts now **12/12/11/10/12** (57 total).
+
+## labs 1.14 — 08/24/26 — External AI review triaged: worktrees in, CI authoring demoted to reading
+
+Brent had a second AI review labs.md against the beginner course. Each recommendation was
+verified before acting (docs research + a line-by-line beginner/advanced cross-check).
+
+**Rejected (with evidence):**
+
+- *"Remove the command→skill migration — it re-teaches beginner Labs 4-5."* Refuted: the beginner
+  course's frontmatter ceiling is a bare `description:`; `$ARGUMENTS`, `` !`bash` `` injection,
+  `@file` in a command file, `allowed-tools` scoping, hot-reload, and `context: fork` appear
+  nowhere in it. The `mv` step is also the vehicle for teaching fork (per the 1.13 audit decision,
+  after `/subtask` failed live verification), and `/triage` is referenced by Labs 3 and 5.
+- *Lab 2 changes.* The hook taxonomy and the five handler types it proposed adding are already in
+  step 11; the logger→formatter swap was optional per the reviewer and would orphan verified
+  screenshots.
+- *"Revalidate SDK auth."* Validated: the docs warning is scoped to third-party distribution of
+  claude.ai login, not local dev — and the 08-21 live QA ran Lab 4 on subscription auth in the
+  classroom Codespace.
+
+**Accepted and applied:**
+
+- **Lab 1 step 9: worktrees callout** (the review's best catch — a real gap). Doc-confirmed on
+  code.claude.com: `claude -w/--worktree <name>` → `.claude/worktrees/<name>/` on branch
+  `worktree-<name>`; subagent frontmatter `isolation: worktree`; auto-cleanup when unchanged.
+  Kept as a taught aside, NOT a hands-on step — unverified in the Codespace. ⚠ Docs also claim
+  `--bg` auto-isolates edits into a worktree, which would conflict with step 9's
+  `cat bg_report.md` at repo root (our 08-23 sandbox run found the file at root) — check
+  `worktree.bgIsolation` behavior on the next Codespace QA run.
+- **Lab 1 summary: the delegation decision rule** — subagent / fork / background / worktree /
+  cheaper model, one line each.
+- **Lab 3: CI authoring demoted to reading.** Old steps 10-11 (typing two workflow YAMLs that
+  can never execute — the repo isn't the students') merged into one reading-only step 10 carrying
+  both YAMLs and the `claude_args` table; "Know the Bounds" renumbered 12→11. Lab 3 is now 11
+  steps, all hands-on minutes on `/goal` + `/loop`. Images `cc-se76/77.png` are now orphans.
+- **Lab 4 step 1: auth aside** — dev loop (CLI login carries over, as this lab runs) vs
+  distribution (`ANTHROPIC_API_KEY` / Bedrock / Vertex / Foundry; claude.ai login may not be
+  offered in shipped products), tied back to Lab 3's CI secret.
+
+Step counts now **11/12/11/10/12** (56 total). Deck v1.10 unchanged — its CI slides already carry
+the demoted content.
+
+## labs 1.13 / deck v1.10 — 08/23/26 — The advanced-course audit: delegation ladder
+
+Brent's challenge: with all the *(recap)* steps, is this truly an advanced course that builds on
+ccode? Full audit run: ccode labs re-read step by step (its 56 steps already cover commands,
+skills, subagents, plugins, /rewind, /context and basic headless pipe), every cc-adv lab and all
+67 slides cataloged, and the Aug-2026 capability surface researched against code.claude.com and
+verified against a live 2.1.241 install.
+
+**Verdict:** Labs 2-5 (hooks, loops, SDK, MCP server) hold up as advanced. The problem was Lab 1 —
+4 of its 11 steps were recaps, and its topics (commands/skills/subagents) are ccode's Labs 4-5
+with better frontmatter. Meanwhile the actual advanced delegation surface — forks, background
+agents, agent teams, dynamic workflows — was two flyby slides after the last lab, and background
+agents appeared nowhere.
+
+### Verified live before writing (Claude Code 2.1.241)
+
+- **`claude --bg`** works: prints `backgrounded · <id>` plus the four management commands
+  (`claude agents` / `attach` / `logs` / `stop`); the detached session created its file ~45s later.
+- **`context: fork` in SKILL.md frontmatter** works: the skill loaded and ran forked (headless
+  sandbox test — flagged for Codespace QA).
+- `--json-schema`, `--max-budget-usd`, `--bare`, `--teleport`, `--cloud`, `claude agents`,
+  agent-teams env gate, `/subtask`, workflows — all confirmed present in the CLI.
+- **`/subtask` did NOT resolve in a session with custom agent types configured** — kept OUT of the
+  lab; fork is taught through the skill frontmatter instead.
+
+### labs.md Revision 1.13 — Lab 1 rebuilt as "Advanced Delegation — Right Model, Right Context, Right Worker"
+
+11 steps, all ≤12 min:
+
+1. **Set Up in One Pass** *(recap — the only full recap left)*: `/init` + the standing test rule.
+   The old steps 1-3 (scout, /init walkthrough, rule + auto-memory + /memory hierarchy) collapsed
+   into it; auto-memory now a one-line pointer back to ccode.
+2-4. Command → run → skill hot-reload (unchanged — the frontmatter content is advanced and QA'd).
+5. **NEW — Fork the Skill**: add `context: fork`, rerun `/triage`, watch the run leave the main
+   context; fork vs background framed as the execution dials.
+6. Haiku subagent (unchanged).
+7. **Two Dials of Thinking** — old steps 8 (ultrathink) + 9 (/effort) merged.
+8. **NEW — Send a Worker to the Background**: `claude --bg` with `--permission-mode acceptEdits`,
+   tied back to Lab 3's unattended-permissions rule.
+9. **NEW — Manage the Fleet**: `claude agents`, `logs`, `stop`, `cat bg_report.md`; closes with the
+   ladder up to teams/workflows (deliberately not hands-on — token cost on class accounts).
+10. `/context` cost *(recap kept per Brent)* — now also shows what the step-5 fork kept out.
+11. Exit.
+
+Recap steps: 4 → 2 tagged (one is the 30-second setup, one the /context closer).
+New screenshots needed: `ccadv16-18.png` (fork run, --bg output, agent view).
+
+### Deck v1.10 — the delegation section rebuilt, 69 slides / 58 visible
+
+- **NEW "The Delegation Ladder"** (pos 19) — the section's framing slide: inline → subagent →
+  fork → --bg → team/workflow, with the trade named at each rung (isolation buys focus, paid in
+  tokens).
+- **NEW "Background Agents — a Fleet, Not Tabs"** (pos 23) — the panel is the real `--bg` output
+  captured live.
+- **Agent Teams and Dynamic Workflows moved up** from the closing flyby (old pos 60-61) into the
+  delegation section (pos 24-25), each with a scripted INSTRUCTOR DEMO speaker note (run on your
+  own account — ~7x tokens for teams, fleet-scale for workflows — not on class accounts).
+- **"Commands vs Agents" hidden** (`[TRIMMED]`) — its rule of thumb now lives on the ladder slide.
+- **Slide 10 panel corrected** — it still said "Lab 1 commands, context, thinking / Lab 3
+  headless + CI"; drift from two revisions of lab changes. Now "the delegation ladder" / "loops + CI".
+- **Lab 1 title slide** retitled + purpose rewritten.
+- **JSON Out slide**: added `--json-schema` / `--max-budget-usd` / `--bare` bullet.
+- **"Claude Code on the Web" rewritten as "Beyond the Terminal"** (closing): cloud sessions,
+  `--teleport`, Remote Control (GA), Channels (research preview) — placeholder narrowed so text no
+  longer runs under the screenshot.
+
+Net: +2 slides, +1 hidden → visible 57 → 58. Validated against v1.9; ladder, background-agents,
+slide-10, Lab-1-title and Beyond-the-Terminal pages rendered and checked.
+
+### Deliberately NOT given lab time (decision log)
+
+- **Agent teams / dynamic workflows** — instructor demo + slides (token cost, experimental gate).
+- **Channels, Monitor tool** — slides only (research preview, credential + Bun setup).
+- **Cloud sessions / Remote Control** — closing slide (needs org enablement; runs outside the
+  Codespace).
+- **/subtask** — didn't survive live verification in a configured session; fork taught via
+  frontmatter instead.
+- **Sandbox** — stays a slide (bubblewrap availability in the Codespace unverified).
+- **Output styles, LSP/IDE, OpenTelemetry, plugin eval / skill-doctor** — neither (not advanced,
+  not class-runnable, or early-access gated).
+
+
+## labs 1.12 / deck v1.9 — 08/23/26 — Loops become a first-class topic
+
+`/loop` and `/goal` appeared **nowhere** in the deck or the labs — grepped and confirmed zero
+hits for `/loop`, `/goal`, "Stop hook", `CronCreate` and "scheduled task" in v1.8 / Rev 1.11.
+Meanwhile the whole thesis of slide 31 was "remove yourself from the loop," and every driver it
+named lived outside Claude Code. Fixed on both sides. Supersedes `workshop-claude-code-adv_v1.8.pptx`.
+
+### Verified live before writing anything (Claude Code 2.1.241)
+
+Not taken from docs. Both features were exercised against a copy of this repo's `app/`:
+
+- **`/goal`** — `claude -p "/goal python3 app/test_app.py reports 14 passed, 0 failed…"` fixed the
+  four 400/404 contract violations in `app.py`, never touched `test_app.py`, and cleared itself when
+  the evaluator confirmed 14/14. **8 turns, ~25s, $0.33.** Repeated a second time with the same result.
+- **`/loop 1m`** — driven through a real interactive session on a pty. Fires `CronCreate(*/1 * * * *)`,
+  prints `Scheduled 8db547d2 (Every minute)`, and the target file collected 4 timestamped lines a
+  minute apart. Jitter was visible: first fire at :31, then settling to :19.
+- **Workspace trust gates `/goal`** — the evaluator is part of the hooks system, so an untrusted
+  folder prompts first. Codespaces seed trust, but it is a real failure mode on a laptop demo.
+- `/goal` and `/loop` are both registered commands in 2.1.241, and `CronCreate` / `CronList` /
+  `CronDelete` / `ScheduleWakeup` all appear in the session tool list.
+
+### labs.md Revision 1.12 — Lab 3 rewritten end to end
+
+**Was:** "Headless Mode & CI Automation", 11 steps — six of them `claude -p` mechanics (pipe, JSON,
+jq, a for-loop, inspect its output, pre-approve permissions) and five GitHub Actions.
+**Now:** "Loops Instead of Prompts — `/goal` and `/loop`", 12 steps:
+
+1. `git switch -c loop-lab` — a throwaway branch, because `/goal` edits real files
+2. `/goal` against the failing suite — Lab 1's ultrathink plan, actually executed
+3. Reading the evaluator's verdicts (not yet met / met / impossible), Ctrl+O for the reason
+4. `/goal` with no arguments — status: turns evaluated, spend, last reason
+5. Confirm 14/14 and `git diff --stat`, commit, `git switch -` — **restores the 4 failures for Lab 5**
+6. `/loop 2m …` — `CronCreate`, the job ID, the cadence confirmation
+7. `.claude/loop.md` — replacing the built-in maintenance prompt (written while the loop ticks)
+8. `CronList` / `CronDelete` in plain English, and Esc
+9. `claude -p "/goal …" --output-format json | jq` — the same loop with no session at all
+10-11. The two GitHub Actions workflows (unchanged, reframed as the outer loop off your machine)
+12. Bounding a loop: stop clauses, `--max-turns`, `timeout-minutes`, CI security baseline
+
+The `-p` mechanics that left the lab were **already on deck slides 36-37** (pipe, jq, the JSON
+envelope, stream-json, exit codes), so nothing was lost — they are now demonstrated rather than typed.
+
+**Step 5 is load-bearing.** If a student skips the commit-and-switch-back, `app/` stays fixed and
+Lab 5's project-health MCP demo reports a clean suite instead of the failures it is meant to summarize.
+
+**Prose:** 707 → 1224 words, which puts Lab 3 in line with Lab 1 (1279), Lab 2 (1039) and Lab 4 (1398)
+rather than being the outlier it was. Still above the 400-600 target, like every other lab.
+
+**Six screenshots need capture** on the next QA run: `ccadv10`-`ccadv15.png` (goal set, verdicts,
+status, loop scheduled, loop cancelled, headless goal). Seven images are newly orphaned:
+`cc-se29/31/32/36/37/38/78.png`.
+
+### Deck v1.9 — the loop arc rebuilt, in-session first
+
+**Slide 31 "From Prompts to Loops" rewritten.** It listed four drivers, all external (bash loop, SDK,
+CI runner, cron). It now reads as a ladder: inner loop (`/goal`) → outer loop (`/loop`) → off the
+session (`-p`, SDK) → off your machine (CI). The through-line is unchanged.
+
+**Four new slides, 32-35:**
+
+- **`/goal` — The Inner Loop.** The condition, the Haiku evaluator, three verdicts, and the fact that
+  decides everything: the evaluator has no tools, so the condition must name something whose output
+  lands in the transcript.
+- **`/loop` — The Outer Loop.** Three forms (interval+prompt, prompt-only self-paced, bare + `loop.md`),
+  `CronCreate`/`CronList`/`CronDelete`, session scope, jitter, 7-day expiry, and where it stops reaching.
+  The code panel is the real terminal output captured above.
+- **Three Ways to Keep a Session Going.** `/goal` vs `/loop` vs a Stop hook, split by *what starts the
+  next turn*. Lands the payoff for an advanced room: `/goal` is documented as a wrapper around a
+  session-scoped prompt-based Stop hook — the Lab 2 mechanism with a friendly front end. Also keeps
+  auto mode in its lane: it approves calls *within* a turn and never starts a new one.
+- **Anatomy of a Reliable Loop.** Spec · checklist · inspector · budget, mapped onto what `/goal`
+  actually implements.
+
+**Retitled:** slide 38 was "The Loop Pattern (This Is the Whole Idea)" — no longer true once `/goal`
+and `/loop` are taught four slides earlier. Now "The Loop Pattern — One Headless Call, Multiplied".
+Slide 45 (the Lab 3 title slide) retitled and its purpose line rewritten.
+
+**Hidden to pay for the four new slides** (hide, don't delete — `[TRIMMED]` notes on both):
+
+- **43 "The Workflow, Annotated"** — duplicates what students type by hand in Lab 3 steps 10-11, and
+  slide 42 already carries the CI flow visually.
+- **44 "Deep Cloud Review — claude ultrareview"** — useful but has no lab, sits outside the loop story
+  this section now tells, and is the most date-sensitive slide in the deck.
+
+**Slide count 63 → 67, visible 55 → 57.** Net +2 rather than the usual zero: Lab 3 gave back roughly
+six minutes of hands-on `-p` mechanics, which is what the two extra slides spend. Flagged rather than
+buried — if the timing runs long, slides 42 and 38 are the next candidates to hide.
+
+Speaker notes added to every new and changed slide. Validated with `validate.py --original v1.8`;
+all four new slides rendered to PNG and checked for overflow.
+
+
+## deck v1.8 — 08/23/26 — Define "tool" and "classifier" on the slides
+
+Both terms were used throughout the deck without ever being defined. Labs unchanged
+(still Revision 1.11); this is a deck-only revision. `workshop-claude-code-adv_v1.7.pptx`
+is superseded. 63 slides / 55 visible, unchanged.
+
+### Slide 9 (Claude Basics — The Agent Loop) — new bullet
+
+The deck leaned on "tool" everywhere — hooks fire at the tool boundary, `allowed_tools`
+scopes the SDK, MCP adds new ones — but the only thing resembling a definition was
+"An agent = model + tools in a loop". Added, directly under that bullet:
+
+> • A tool = one named capability the model requests and the harness runs — Read, Write,
+> Edit, Bash, Glob, Grep, WebFetch, Task
+
+This is the concept Lab 2's loophole depends on: blocking the Edit *tool* leaves the Bash
+*tool* untouched, which only lands if students hold "tool = one discrete named capability".
+Speaker note added spelling out model-requests / harness-runs and the tie to Lab 2.
+
+### Slide 11 (What Changed on August 14, 2026) — classifier bullet rewritten
+
+"A classifier model reviews each risky call instead of you" assumed the term. Now:
+
+> • A classifier — a second, fast model — reads each risky call and answers allow/block;
+> 3 blocks in a row (or 20 in a session) and prompts return
+
+The real explanation (second model, probabilistic, 89% vs 13.6%) was already in the speaker
+notes but never reached a slide, which mattered because the slide immediately contrasts the
+classifier with hooks. Speaker note added defining it as a risk verdict rather than a rule.
+
+### Slide 11 code panel — formatting fix (pre-existing defect)
+
+The `# the classifier is a MODEL.` line in the dark panel carried **no run properties** —
+no size, no color, no Consolas — so it rendered small, dark and proportional against its
+matched pair `# a hook is YOUR CODE.`. Confirmed present in v1.7 by inspecting the slide XML,
+and visible in a LibreOffice render. Given the same rPr as the hook line (1600, italic,
+`888888`, Consolas).
+
+Verified: `validate.py --original v1.7` passes; slides 9 and 11 rendered to PNG and checked
+for overflow — neither box runs past the code panel.
+
+
+## labs 1.11 — 08/21/26 — First full live run of all 5 labs; Lab 5 unblocked
+
+The first end-to-end execution of every lab in a real Codespace (Claude Code **2.1.238**, Node
+v22.23.2, `claude-agent-sdk` **0.2.143**, Claude Max / Sonnet 5 / medium). All 56 steps run,
+all 40 screenshots recaptured. **Deck stays at v1.7** — the deck was grepped slide by slide for
+every claim touched below and needed nothing; see "Checked and NOT changed".
+Full evidence in `qa-report-live-run-2026-08-21.md`.
+
+### requirements.txt — Lab 5 was completely broken
+
+`mcp>=1.2` had started resolving to **mcp 2.0.0**, which renamed FastMCP to `MCPServer` and
+**deleted `mcp.server.fastmcp`** with no compatibility shim. Both `mcpserver/project_server.py`
+and the answer key `extra/project_server.txt` import it, so every step of Lab 5 died on
+`ModuleNotFoundError` — students never even reached step 2's "still the skeleton" message.
+
+- **`mcp>=1.2,<2`** — pins to the 1.x line (last release 1.29.0). Chosen over migrating the code to
+  `MCPServer` so that Lab 5's prose and the deck's FastMCP naming stay correct. The migration is a
+  two-token change in each file if we ever want it; it would cost a rewrite of Lab 5 steps 1 and 3
+  plus the deck's MCP slides.
+- **`pydantic-settings<2.13`** — 2.13+ emits an `IncompleteFieldDefinitionWarning` about mcp's
+  `lifespan` field. Four lines of noise printed before the server starts, which wrecks Lab 5 step 4
+  where a *silent* start is the success signal. Verified: on 2.12.0 the server starts silently again.
+
+Both pins verified with `pip install --dry-run -r requirements.txt` (exit 0, no conflicts) and by
+re-running Lab 5 end to end.
+
+### STARTUP.md — step 4 was putting every student on Opus
+
+The `/model` picker reordered. It now reads `1. Default (Opus 5) · 2. Opus (1M context) ·
+3. Fable · 4. Sonnet · 5. Haiku`, and STARTUP.md still said *type "2"*. Rewritten to select
+**Sonnet by name**, with an explicit warning that position 2 is an Opus entry — matching the
+guidance labs.md's preamble already carried.
+
+### labs.md (Revision 1.11) — 20 corrections from the live run
+
+**Wrong, now fixed:**
+
+- **Lab 1 step 7** — the pre-restart session does *not* refuse with "There's no test-scout agent type
+  available". It says that **and then silently falls back to `general-purpose`**, runs the suite, and
+  returns a correct-looking 10/4 table from the wrong agent on the wrong model with the full test
+  output in the main context. That is the opposite of the step's lesson, so the step now says so.
+- **Lab 2 step 10** — "Your own `!` commands appear too — they go through the Bash tool" is false.
+  Verified twice: the log holds only Claude's own tool calls. Reversed.
+- **Lab 2 step 10** — the "*Enter* is silently ignored while the suggested-path line shows" warning no
+  longer reproduces on 2.1.238. Softened to describe the hint and say Enter still submits.
+- **Lab 1 preamble** — "Each row also shows that model's price per million tokens" is no longer true;
+  the picker shows no prices. Replaced with a pointer to the ladder, plus a note that Sonnet now sits
+  at position 4.
+
+**UI drift, re-described against 2.1.238:**
+
+- **Lab 1 step 3** — `/memory` now shows `Auto-memory: on` as a status line above
+  **1. Project instructions** / **2. User instructions** / **3. Open auto-memory folder**.
+- **Lab 1 step 10** — `/context` has no "project files" category. Categories are now System prompt,
+  System tools, Custom agents, Memory files, Skills, Messages.
+- **Lab 2 step 6** — `/hooks` opens on a **read-only list of events**, not the two-hook summary.
+  `[command]` and `Project Settings` are two levels down; both drill-in steps now say what to expect.
+- **Lab 5 step 8** — the tool detail view has no input-schema section; it shows Full name and the
+  docstring as Description. Rewritten around what's actually on screen.
+- **Lab 5 step 10** — tool calls collapse to `Called project-health 2 times`; the `mcp__…` names only
+  appear after *Ctrl+o*. Step now says to press it.
+
+**Missing steps / undocumented prompts:**
+
+- **Lab 2 step 5** — `claude-yolo` opens a red "Bypass Permissions mode" warning requiring
+  **2. Yes, I accept**. Was undocumented; now called out.
+- **Lab 5 step 4** — `Ctrl+C` on the stdio server prints a long `KeyboardInterrupt` traceback.
+  Now flagged as expected rather than a failure.
+
+**Auto-mode drift missed by Rev 1.10** — three more places assumed a prompt that auto mode removes:
+Lab 1 step 3 ("Approve the edit"), Lab 1 step 7 ("Approve as needed… asks before running"), and
+Lab 5 step 9 ("Approve the tool use"). All now name both modes.
+
+**Accuracy nits:**
+
+- **Lab 4 step 4** — new callout: `allowed_tools` is **not** an exhaustive whitelist. A `[tool] Bash`
+  line appears for `ls` even though Bash isn't listed, because read-only commands never need approval.
+- **Lab 4 step 5** — the run uses `Grep` several times, not "`Glob`, then `Grep`".
+- **Lab 4 step 9** — the deny line is whatever command Claude picks (`rm -f …` in our run), and Claude
+  usually *explains* it couldn't delete rather than blandly printing DONE.
+- **Preamble** — auto mode is now "normally", with a note that a first session after a fresh install
+  (i.e. a new Codespace) can start in Manual whatever the plan.
+
+Prose grew ~420 words (5.6k → 6.1k) — all of it correctness, none of it new teaching.
+
+### images/ — all 40 recaptured
+
+Every screenshot `labs.md` references was recaptured from this run on 2.1.238 and replaced in place;
+filenames are unchanged. The old set predated the `/model`, `/memory`, `/hooks`, `/context` and
+MCP-panel redesigns and the much larger `--output-format json` payload.
+
+### Checked and NOT changed
+
+- **Lab 3** — all 11 steps passed with zero defects.
+- **`claude-agent-sdk` 0.2.143** — despite the jump from 0.1.73, `query`, `ClaudeAgentOptions`,
+  `AssistantMessage`, `ResultMessage`, `TextBlock`, `ToolUseBlock`, `HookMatcher` and the
+  `hooks={"PreToolUse": [HookMatcher(...)]}` shape all still work. No code changes.
+- **`model: haiku` really pins the subagent** — `claude-haiku-4-5` appears only in the subagent
+  transcript, and `/usage` bills it separately.
+- **Lab 4 step 6's claim that the Lab 2 shell hook fires inside the SDK agent** — verified with a
+  probe: the Python gatekeeper allowed the Write and `protect-config.sh` still blocked it.
+- **`-p` / SDK "start in `default`"** — correct terminology; the docs still call the mode `default`
+  and label it Manual.
+- **`--max-turns`** — dropped from `claude --help` but still parses, so Lab 3 step 9 stands.
+- Diff-merge hunk counts (1 / 2 / 1), the 10-passed/4-failed suite, 40 image references with 0
+  missing, and the Rev 1.10 devcontainer IDE-diff fix all verified working.
+- **The deck (v1.7), checked slide by slide against every fix above.** Slide 7's prices are labelled
+  *API* price per M tokens, so the picker dropping them changes nothing; "above Haiku every model has
+  a 1M context window" is confirmed (Sonnet 5 reports 967k). Slide 20's `model: haiku` block, slides
+  23/25's hook events and `/hooks → inspect`, and slides 43/45/46's `allowed_tools` framing
+  ("pre-approve routine tools" — never claimed to be exhaustive) are all still accurate.
+- **Slides 54-55 keep their FastMCP naming — and that is the reason the pin was chosen over migrating
+  the code.** `from mcp.server.fastmcp import FastMCP` on slide 54 is correct only while
+  `mcp<2` holds. If we ever take the `MCPServer` migration, slides 54 and 55 and Lab 5 steps 1 and 3
+  must move with it.
+
+
 ## labs 1.10 — 08/21/26 — Carry over the ccode Codespace + auto-mode fixes
 
 Propagated from the `ccode` QA run of 08/20/26. **Deck unchanged at v1.7** — the deck was checked
