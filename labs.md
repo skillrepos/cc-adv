@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, CI automation, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.18 - 08/24/26
+## Revision 1.19 - 08/24/26
 
 <br><br>
 
@@ -29,7 +29,7 @@
 
 <br><br>
 
-**NOTE:** This course assumes you've completed the introductory Claude Code workshop (or equivalent). Steps that exercise something from that course are marked *(recap)* and kept quick.
+**NOTE:** This course assumes you are already comfortable with the Claude Code basics — running it, permission modes, `/init` and CLAUDE.md, skills, subagents and custom commands. A few steps re-establish that groundwork so the rest of the day has something to build on; those are marked *(recap)* and kept short. Everything else is new ground.
 
 <br><br>
 
@@ -44,7 +44,7 @@ Climb the delegation ladder: a parameterized command, a hot-reloaded skill, a fo
 <br><br>
 
 ## 1: Set Up in One Pass *(recap)*
-The repo holds a Flask to-do API in `app/` (its test suite fails in 4 places *by design*), Agent SDK skeletons in `sdk/`, and an MCP server skeleton in `mcpserver/`. The intro course covered `/init`, CLAUDE.md and auto-memory in depth — here we just lay the context the rest of the day builds on.
+The repo holds a Flask to-do API in `app/` (its test suite fails in 4 places *by design*), Agent SDK skeletons in `sdk/`, and an MCP server skeleton in `mcpserver/`. `/init` and CLAUDE.md are assumed knowledge — this step just lays the context the rest of the day builds on.
 
 **Action:** In the terminal, start Claude:
 ```bash
@@ -60,16 +60,20 @@ Then type:
 
 ![claude.md](./images/ccadv12.png?raw=true "claude.md")
 
-When it finishes, skim the `CLAUDE.md` it wrote. It will already have worked out the repo layout, the test command, and the fact that `app/`'s four failing tests are deliberate — **that is the half of CLAUDE.md Claude can read for itself.**
+**Action:** When it finishes, open the file it wrote — click **CLAUDE.md** in the file list on the left, or type `! code CLAUDE.md` at the Claude prompt (a `!` prefix runs the rest as a shell command).
 
-Now add the half it cannot guess. Type:
+Skim it. It will already have worked out the repo layout, the test command, and the fact that `app/`'s four failing tests are deliberate — **that is the half of CLAUDE.md Claude can read for itself.** Note the section it created for standing rules; you're about to add one.
+
+**Action:** Now add the half it cannot guess. Back at the Claude prompt, type:
 ```
 Add this standing rule to CLAUDE.md: Never run git commit or git push in this repo - I handle version control myself. If you think something should be committed, say so and stop.
 ```
 
-Confirm it landed under the standing rules. **That contrast is the point of this step:** `/init` documents what it can *discover*; a standing rule is where *your* policy goes — a preference no amount of reading the code would reveal. Lab 2 comes back to this exact rule to show how much a CLAUDE.md instruction is really worth.
+**Action:** Switch back to the `CLAUDE.md` tab — VS Code reloads it automatically — and find your new rule in that standing-rules section. (If you closed it, `! code CLAUDE.md` reopens it.)
 
-> **From the intro course, still true:** shared+enforced rules → CLAUDE.md; personal learned facts → auto-memory (`/memory` shows the hierarchy). We won't walk it again.
+**That contrast is the point of this step:** `/init` documents what it can *discover*; a standing rule is where *your* policy goes — a preference no amount of reading the code would reveal. Lab 2 comes back to this exact rule to show how much a CLAUDE.md instruction is really worth.
+
+> **Where each kind of knowledge lives:** shared rules everyone on the repo should follow → CLAUDE.md; personal facts Claude learns about how *you* work → auto-memory. `/memory` shows the full hierarchy; we won't walk it here.
 
 ![Add rule and memory](./images/ccadv14.png?raw=true "Add rule and memory")
 
@@ -1036,7 +1040,7 @@ The JSON fields mirror the `ResultMessage` attributes your program printed. Same
 ## Lab Purpose
 You've *used* MCP servers; now **build one**. Complete a Python FastMCP server exposing three "project health" tools, register it at project scope, and drive it from natural-language prompts. Estimated time: 10-12 minutes.
 
-> **Quick MCP recap (from the intro course):** an MCP server is a process Claude Code talks to over stdin/stdout (or HTTP), exposing *tools* Claude can call. Add one with `claude mcp add <name> -- <command>`, inspect it with `/mcp`; its tools are named `mcp__<server>__<tool>`. Today the server is yours.
+> **MCP in one paragraph:** an MCP server is a process Claude Code talks to over stdin/stdout (or HTTP), exposing *tools* Claude can call. Add one with `claude mcp add <name> -- <command>`, inspect it with `/mcp`; its tools are named `mcp__<server>__<tool>`. Today the server is yours.
 
 ---
 <br><br>
