@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, CI automation, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.17 - 08/24/26
+## Revision 1.18 - 08/24/26
 
 <br><br>
 
@@ -60,13 +60,14 @@ Then type:
 
 ![claude.md](./images/ccadv12.png?raw=true "claude.md")
 
-When it finishes, type:
-```
-Add this standing rule to CLAUDE.md: The test suite is run with python3 app/test_app.py. Never edit app/test_app.py - it defines the correct contract.
-```
-(Note that the rule may already be in the CLAUDE.md file. If so, that's ok.)
+When it finishes, skim the `CLAUDE.md` it wrote. It will already have worked out the repo layout, the test command, and the fact that `app/`'s four failing tests are deliberate — **that is the half of CLAUDE.md Claude can read for itself.**
 
-Confirm the rule landed in `CLAUDE.md`. Labs 2-5 all lean on it.
+Now add the half it cannot guess. Type:
+```
+Add this standing rule to CLAUDE.md: Never run git commit or git push in this repo - I handle version control myself. If you think something should be committed, say so and stop.
+```
+
+Confirm it landed under the standing rules. **That contrast is the point of this step:** `/init` documents what it can *discover*; a standing rule is where *your* policy goes — a preference no amount of reading the code would reveal. Lab 2 comes back to this exact rule to show how much a CLAUDE.md instruction is really worth.
 
 > **From the intro course, still true:** shared+enforced rules → CLAUDE.md; personal learned facts → auto-memory (`/memory` shows the hierarchy). We won't walk it again.
 
@@ -544,7 +545,7 @@ You should see each command Claude ran, with its description. Your own `!` comma
 ## 11: Prompt vs. Tool vs. Hook Constraints
 Four ways to say "don't do that," and they are not equally strong. (Reading only)
 
-- **Prompt constraint** — CLAUDE.md or agent-file instructions: a request, not a guarantee.
+- **Prompt constraint** — CLAUDE.md or agent-file instructions: a request, not a guarantee. Your Lab 1 *"never run git commit or git push"* rule is exactly this: durable (unlike a boundary typed in chat, it survives `/compact`), but still only a request Claude can talk itself out of.
 - **Tool constraint** — `disallowedTools` removes the tool entirely, for one agent.
 - **Classifier** — in auto mode a second *model* judges each risky call: probabilistic, and a boundary stated in chat can be lost when `/compact` drops that message.
 - **Hook** — your code at the tool boundary, on *every* tool call. Exit 2 is a hard no, even in bypass mode.
