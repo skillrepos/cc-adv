@@ -124,7 +124,13 @@ This file demonstrates four advanced features:
 ## 3: Run the Command on the Buggy API
 **Action:** Claude Code loads custom commands at **startup**, so your running session doesn't know `/triage` yet (it would say *"Unknown command: /triage"*).
 
-Restart Claude — type `/exit`, then `claude`. Then type:
+Make sure you saved the triage command file. 
+
+Restart Claude — type `/exit`, then `claude`. 
+
+(If prompted about trying the new full screen renderer, decline that.)
+
+Then type:
 
 ```
 /triage app/app.py
@@ -161,7 +167,7 @@ It works: **Claude Code watches skill directories and picks up adds, edits and r
 ## 5: Fork the Skill — Same Context, Separate Worker
 Hot-reload means you can change *how* a skill executes mid-session too. `context: fork` runs the skill in its own **forked subagent**: it inherits your full conversation (and the warm prompt cache), but its work happens outside your main context.
 
-**Action:** In your terminal tab, edit `.claude/skills/triage/SKILL.md` and add one line to the frontmatter:
+**Action:** In your terminal tab, edit `.claude/skills/triage/SKILL.md` and add one line to the frontmatter. Save your change.
 
 ```md
 context: fork
@@ -186,7 +192,7 @@ Watch the transcript: the triage now runs as a delegated task and only the repor
 ## 6: Delegate to a Cheaper Model — a Haiku Subagent
 Verbose output stays in the subagent — only a summary returns — and `model:` pins it to a cheaper, faster model.
 
-**Action:** In your terminal tab, create the agents folder:
+**Action:** In a separate terminal tab, create the agents folder:
 ```bash
 mkdir -p .claude/agents
 ```
@@ -236,9 +242,9 @@ The **effort level** is your session-wide dial; `ultrathink` anywhere in a promp
 ultrathink: Propose a refactoring plan for app/ that fixes the 400/404 contract violations without changing test_app.py. Consider at least two approaches and recommend one. Plan only - do not edit files.
 ```
 
-**Action:** Now check the session dial. Type `/model` and use the **left/right arrow keys** to see the effort options — **low · medium · high · xhigh · max** — leave it on *medium* and hit *Esc*.
+**Action:** Review the session dial. Type `/model` and use the **left/right arrow keys** to see the effort options — **low · medium · high · xhigh · max** — leave it on *medium* and hit *Esc*.
 
-> **Also:** `/effort` sets it without the picker, and `/effort ultracode` is a Claude Code *setting*, not a model level — `xhigh` plus a dynamic multi-agent workflow. **Changing effort mid-session invalidates your prompt cache** (keyed by model *and* effort), so set both once, at the top of a session.
+> **fyi only:** `/effort` sets it without the picker, and `/effort ultracode` is a Claude Code *setting*, not a model level — `xhigh` plus a dynamic multi-agent workflow. **Changing effort mid-session invalidates your prompt cache** (keyed by model *and* effort), so set both once, at the top of a session.
 
 ![Extended thinking](./images/ccadv3.png?raw=true "Extended thinking")
 
@@ -248,7 +254,7 @@ ultrathink: Propose a refactoring plan for app/ that fixes the 400/404 contract 
 ## 9: Send a Worker to the Background
 Everything so far ran inside your session. `claude --bg` starts a **background agent**: a whole separate session, detached from any terminal, that keeps working while you do something else.
 
-**Action:** In your **terminal tab** (leave your interactive session running — they coexist fine), run:
+**Action:** In your separate **terminal tab** (leave your interactive session running — they coexist fine), run:
 ```bash
 claude --bg "Run python3 app/test_app.py and write a markdown summary of the failures to bg_report.md - one line per failure naming the contract each violates" --permission-mode acceptEdits --allowedTools "Bash(python3:*)"
 ```
