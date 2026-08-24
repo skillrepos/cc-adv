@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, CI automation, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.23 - 08/24/26
+## Revision 1.26 - 08/24/26
 
 <br><br>
 
@@ -27,6 +27,10 @@
 
 > Check the bottom-left of the prompt; if it reads `⏸ manual mode on` — which is where a brand-new Codespace starts — press **Shift+Tab** until it reads *auto mode on*. Lab 2 deliberately switches to bypass mode; every other lab assumes auto.
 
+> If Claude offers **"Try the new fullscreen renderer?"**, choose **2. Not now** — the classic renderer matches this lab's screenshots.
+
+> For creating/editing files: If running in the codespace you can use the command `code <filename>`.  And use `Ctrl+S` (Windows) or `Cmd+S` (Mac)
+to save changes.  If running locally, use whatever editor you prefer.
 <br><br>
 
 **NOTE:** This course assumes you are already comfortable with the Claude Code basics — running it, permission modes, `/init` and CLAUDE.md, skills, subagents and custom commands. A few steps re-establish that groundwork so the rest of the day has something to build on; those are marked *(recap)* and kept short. Everything else is new ground.
@@ -55,8 +59,6 @@ claude
 /init
 ```
 
-> If Claude offers **"Try the new fullscreen renderer?"**, choose **2. Not now** — the classic renderer matches this lab's screenshots.
-
 `/init` writes a CLAUDE.md with everything it can *discover* — repo layout, test command, even that the failures are deliberate.
 
 ![claude.md](./images/ccadv12.png?raw=true "claude.md")
@@ -65,14 +67,14 @@ claude
 <br><br>
 
 ## 2: Add a Standing Rule
-What `/init` can't discover is *your* policy. **Action:** Type:
+What `/init` can't discover is *your* policy. Let's add a rule to show how you can add that. **Action:** In Claude, type:
 ```
 Add this standing rule to CLAUDE.md: Never run git commit or git push in this repo - I handle version control myself. If you think something should be committed, say so and stop.
 ```
 
-Click **CLAUDE.md** in the file list to see your rule land in the standing-rules section. Lab 2 comes back to this rule to show how much a CLAUDE.md instruction is really worth.
+Click **CLAUDE.md** in the file list to see your rule land in the standing-rules section. 
 
-> **fyi:** shared repo rules → CLAUDE.md; personal facts Claude learns about *you* → auto-memory (`/memory` shows the hierarchy).
+> **fyi:** Shared repo rules → CLAUDE.md; personal facts Claude learns about *you* → auto-memory (`/memory` shows the hierarchy).
 
 ![Add rule](./images/ccadv26.png?raw=true "Add rule")
 
@@ -80,10 +82,13 @@ Click **CLAUDE.md** in the file list to see your rule land in the standing-rules
 <br><br>
 
 ## 3: Create a Real Custom Command
-**Action:** In a separate terminal tab (keep Claude running), create the folders, then create `.claude/commands/triage.md` with these contents and **save it**:
+**Action:** In a separate terminal tab (keep Claude running), create folders for commands and skills. 
+
 ```bash
 mkdir -p .claude/commands .claude/skills
 ```
+
+Now create the file `.claude/commands/triage.md` with these contents and **save it**:
 
 ```md
 ---
@@ -113,10 +118,10 @@ Four advanced features here: **`$ARGUMENTS`** (text typed after `/triage`) · **
 ---
 <br><br>
 
-## 4: Restart and Run It
+## 4: Restart Claude and Run the Command.
 Commands load at **startup**, so your running session doesn't know `/triage` yet.
 
-**Action:** In Claude, type `/exit`, then `claude`, then:
+**Action:** In Claude, type `/exit`. Then start Claude via `claude`, and run the command below in Claude:
 ```
 /triage app/app.py
 ```
@@ -128,8 +133,8 @@ The triage should flag the API returning **500** where the contract demands **40
 ---
 <br><br>
 
-## 5: Turn It Into a Skill — Without Restarting
-Commands have **merged into skills**: both paths create `/triage`, same frontmatter.
+## 5: Turn the Command Into a Skill — Without Restarting
+Commands have been **merged into skills**: both paths create `/triage`, same frontmatter. To see this, we'll move the file to the skills area.
 
 **Action:** In your other terminal tab:
 ```bash
@@ -152,7 +157,7 @@ It works: skill directories are **watched and hot-reloaded** mid-session. Comman
 ## 6: Fork the Skill — Same Context, Separate Worker
 `context: fork` runs the skill in a **forked subagent**: it inherits your full conversation, but its work stays out of your main context.
 
-**Action:** Edit `.claude/skills/triage/SKILL.md`, add two lines to the frontmatter, and save:
+**Action:** Edit `.claude/skills/triage/SKILL.md`, add two lines to the frontmatter (see screenshot), and save:
 ```md
 name: triage
 context: fork
@@ -160,7 +165,7 @@ context: fork
 
 ![Adding fields](./images/ccadv27.png?raw=true "Adding fields")
 
-**Action:** In Claude — still no restart:
+**Action:** In Claude, run the command below (no restart needed):
 ```
 /triage app/auth.py
 ```
@@ -173,10 +178,13 @@ The triage runs as a delegated task; only the report returns. (The transcript's 
 <br><br>
 
 ## 7: Create a Haiku Subagent
-**Action:** In your terminal tab, create the folder and `.claude/agents/test-scout.md` with these contents, and save:
+**Action:** Let's create a subagent that uses the smaller, cheaper Haiku model. In your terminal tab, create the *agents* folder:
+
 ```bash
 mkdir -p .claude/agents
 ```
+
+Next, create `.claude/agents/test-scout.md` with these contents, and save:
 
 ```md
 ---
@@ -197,10 +205,10 @@ disallowedTools: Write, Edit
 ---
 <br><br>
 
-## 8: Restart and Run the Subagent
+## 8: Restart Claude and Run the Subagent
 Agents load at startup (they don't hot-reload).
 
-**Action:** In Claude, `/exit`, then `claude`, then:
+**Action:** In Claude, `/exit`, then `claude`, then (in Claude):
 ```
 Use the test-scout subagent to run the test suite and summarize the failures.
 ```
@@ -215,7 +223,7 @@ You get a compact report — 10 passed / 4 failed with causes — run on Haiku, 
 ## 9: Ask for a Deeper Plan
 `ultrathink` anywhere in a prompt requests deeper reasoning **on that turn only**.
 
-**Action:** Type:
+**Action:** Enter the prompt below in Claude:
 ```
 ultrathink: Propose a refactoring plan for app/ that fixes the 400/404 contract violations without changing test_app.py. Consider at least two approaches and recommend one. Plan only - do not edit files.
 ```
@@ -228,14 +236,15 @@ Skim the plan — Lab 3 will *execute* this exact fix. (Ctrl+O shows the detaile
 <br><br>
 
 ## 10: Send a Worker to the Background
-`claude --bg` starts a **detached session** that keeps working while you do something else. With nobody there to click "Yes", a worker must never be able to *wait*: `--permission-mode dontAsk` **auto-denies** anything not pre-approved instead of queuing a question nobody will answer, and `--allowedTools` lists exactly what the job needs — here the test command and the report write.
 
-**Action:** In your **terminal tab** (leave Claude running), run:
+`claude --bg` starts a **detached session** that keeps working while you do something else. With nobody there to click "Yes", a worker must never have to *wait* for approval.  Passing the command line option `--permission-mode dontAsk` **auto-denies** anything not pre-approved instead of queuing a question nobody will answer. And `--allowedTools` lists/allows exactly what the job needs — here the test command and the report write.
+
+**Action:** In a separate **terminal tab** (leave Claude running), run this complete command:
 ```bash
 claude --bg "Run python3 app/test_app.py and write a markdown summary of the failures to bg_report.md - one line per failure naming the contract each violates. python3 is on your PATH - run the tests directly and do not probe the environment first. Do not run any git commands." --permission-mode dontAsk --allowedTools "Bash(python3:*),Write"
 ```
 
-You get a session ID and management commands back immediately. (The prompt forbids git because your CLAUDE.md rule won't reach the worker's fresh checkout — and an allowlist matches **every segment** of a compound command, so one improvised `git` or `find` would otherwise stall the whole run.)
+You get a session ID and management commands back immediately. 
 
 ![Background agent started](./images/ccadv17.png?raw=true "Background agent started")
 
@@ -243,33 +252,31 @@ You get a session ID and management commands back immediately. (The prompt forbi
 <br><br>
 
 ## 11: Find the Report
-**Action:** Still in the terminal tab, list your sessions, then go looking for the report:
+**Action:** Still in the terminal tab, list your sessions. After the agent is done, you can view the report:
 ```bash
 claude agents
 ```
 
 ![Agent view — worker completed](./images/ccadv28.png?raw=true "Agent view — worker completed")
 
-(Arrow to the worker to watch it; **Esc** leaves the view.) Then:
+(Some navigation controls to be aware of: Two levels here: in the list, **Space** peeks at the worker — **Enter** opens its full transcript, where **Esc** does nothing and **←** brings you back to the list, as the status line says. **Esc** closes the list itself.) 
+
+Now, you can view the report, which is stored in a separate Git working directory call a *worktree*:
 ```bash
-cat bg_report.md
 cat .claude/worktrees/*/bg_report.md
 ```
 
-The first `cat` **fails** — and the second finds your four failures. Before writing anything, `--bg` gave the worker **its own worktree checkout** on a `worktree-<name>` branch; your `main` was never touched. `claude rm <id>` removes a session *and* its worktree. *(Slides: "Worktree Isolation".)*
+Before writing anything, `--bg` gave the worker **its own worktree checkout** on a `worktree-<name>` branch; your `main` was never touched. `claude rm <id>` removes a session *and* its worktree. *(Slides: "Worktree Isolation".)*
 
-> **If agent view ever shows a worker "awaiting input"** — the screenshot below is one, stuck on a git approval because it was launched in a mode that can still ask — select it and press **Space** to answer from the peek panel, or `claude rm <id>` it. That hang is exactly what `dontAsk` exists to prevent.
-
-![A worker stuck awaiting input](./images/ccadv18.png?raw=true "A worker stuck awaiting input")
 
 ---
 <br><br>
 
 ## 12: Exit
 
-**Action:** In prep for the next lab, type `exit` to exit Claude Code.
+**Action:** In prep for the next lab, type `/exit` to exit Claude Code.
 ```
-exit
+/exit
 ```
 
 ## Lab Summary
