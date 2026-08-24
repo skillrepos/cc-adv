@@ -75,7 +75,7 @@ Add this standing rule to CLAUDE.md: Never run git commit or git push in this re
 
 > **Where each kind of knowledge lives:** shared rules everyone on the repo should follow → CLAUDE.md; personal facts Claude learns about how *you* work → auto-memory. `/memory` shows the full hierarchy; we won't walk it here.
 
-![Add rule](./images/ccadv26.png?raw=true "Add rule")
+![Add rule and memory](./images/ccadv14.png?raw=true "Add rule and memory")
 
 ---
 <br><br>
@@ -124,13 +124,7 @@ This file demonstrates four advanced features:
 ## 3: Run the Command on the Buggy API
 **Action:** Claude Code loads custom commands at **startup**, so your running session doesn't know `/triage` yet (it would say *"Unknown command: /triage"*).
 
-Make sure you saved the triage command file. 
-
-Restart Claude — type `/exit`, then `claude`. 
-
-(If prompted about trying the new full screen renderer, decline that.)
-
-Then type:
+Restart Claude — type `/exit`, then `claude`. Then type:
 
 ```
 /triage app/app.py
@@ -167,11 +161,14 @@ It works: **Claude Code watches skill directories and picks up adds, edits and r
 ## 5: Fork the Skill — Same Context, Separate Worker
 Hot-reload means you can change *how* a skill executes mid-session too. `context: fork` runs the skill in its own **forked subagent**: it inherits your full conversation (and the warm prompt cache), but its work happens outside your main context.
 
-**Action:** In your terminal tab, edit `.claude/skills/triage/SKILL.md` and add one line to the frontmatter. Save your change.
+**Action:** In your terminal tab, edit `.claude/skills/triage/SKILL.md` and add two lines to the frontmatter:
 
 ```md
+name: triage
 context: fork
 ```
+
+> `context: fork` is the line that changes behavior. `name` is optional for Claude Code — a skill takes its name from its directory — but VS Code flags a `SKILL.md` that has none, so adding it keeps the editor quiet. Commands are named by *filename*; skills by their *directory* (or this field).
 
 **Action:** Back in Claude — still no restart — run it a third time:
 ```
@@ -192,7 +189,7 @@ Watch the transcript: the triage now runs as a delegated task and only the repor
 ## 6: Delegate to a Cheaper Model — a Haiku Subagent
 Verbose output stays in the subagent — only a summary returns — and `model:` pins it to a cheaper, faster model.
 
-**Action:** In a separate terminal tab, create the agents folder:
+**Action:** In your terminal tab, create the agents folder:
 ```bash
 mkdir -p .claude/agents
 ```
@@ -242,9 +239,9 @@ The **effort level** is your session-wide dial; `ultrathink` anywhere in a promp
 ultrathink: Propose a refactoring plan for app/ that fixes the 400/404 contract violations without changing test_app.py. Consider at least two approaches and recommend one. Plan only - do not edit files.
 ```
 
-**Action:** Review the session dial. Type `/model` and use the **left/right arrow keys** to see the effort options — **low · medium · high · xhigh · max** — leave it on *medium* and hit *Esc*.
+**Action:** Now check the session dial. Type `/model` and use the **left/right arrow keys** to see the effort options — **low · medium · high · xhigh · max** — leave it on *medium* and hit *Esc*.
 
-> **fyi only:** `/effort` sets it without the picker, and `/effort ultracode` is a Claude Code *setting*, not a model level — `xhigh` plus a dynamic multi-agent workflow. **Changing effort mid-session invalidates your prompt cache** (keyed by model *and* effort), so set both once, at the top of a session.
+> **Also:** `/effort` sets it without the picker, and `/effort ultracode` is a Claude Code *setting*, not a model level — `xhigh` plus a dynamic multi-agent workflow. **Changing effort mid-session invalidates your prompt cache** (keyed by model *and* effort), so set both once, at the top of a session.
 
 ![Extended thinking](./images/ccadv3.png?raw=true "Extended thinking")
 
@@ -254,9 +251,9 @@ ultrathink: Propose a refactoring plan for app/ that fixes the 400/404 contract 
 ## 9: Send a Worker to the Background
 Everything so far ran inside your session. `claude --bg` starts a **background agent**: a whole separate session, detached from any terminal, that keeps working while you do something else.
 
-**Action:** In your separate **terminal tab** (leave your interactive session running — they coexist fine), run:
+**Action:** In your **terminal tab** (leave your interactive session running — they coexist fine), run:
 ```bash
-claude --bg "Run python3 app/test_app.py and write a markdown summary of the failures to bg_report.md - one line per failure naming the contract each violates" --permission-mode acceptEdits --allowedTools "Bash(python3:*)"
+claude --bg "Run python3 app/test_app.py and write a markdown summary of the failures to bg_report.md - one line per failure naming the contract each violates. Do not run any git commands." --permission-mode acceptEdits --allowedTools "Bash(python3:*)"
 ```
 
 You get back a session ID and the management commands, immediately:
@@ -274,6 +271,8 @@ An unattended session has nobody to click "Yes" — so it must be told, up front
 
 > **Why two flags and not one.** Passing `--permission-mode` *replaces* auto mode; it does not add to it. `acceptEdits` pre-approves **file writes** and nothing else — so the very first thing this task does, running the test suite, is a **Bash** call that stops dead waiting for an approval nobody will ever give. `--allowedTools "Bash(python3:*)"` is what covers that call. **Mode governs edits; `--allowedTools` governs commands** — an unattended run usually needs both. (Try dropping the `--allowedTools` half later and watch `claude agents` report the session stuck on *"approve Bash: …"*.)
 
+> **And why the prompt forbids git.** Left to itself the worker will finish the report and then try to commit it — an unapproved `git commit` is the same dead stop as the unapproved test run. Your CLAUDE.md rule from step 1 will not save you here: the worker runs in a fresh checkout (step 10), and a CLAUDE.md that is untracked never makes it into one. Say it in the prompt.
+
 ![Background agent started](./images/ccadv17.png?raw=true "Background agent started")
 
 ---
@@ -285,29 +284,22 @@ An unattended session has nobody to click "Yes" — so it must be told, up front
 claude agents
 ```
 
-**Agent view** lists your **detached** sessions — the background worker is here; the interactive session you are typing in is not. Arrow to the background session to watch it; **Esc** leaves the view (Esc twice if you have landed in the "Describe a task" box).
+Your background worker is here; the interactive session you are typing in is not — agent view lists **detached** sessions only. Arrow to the worker to watch it; **Esc** leaves the view (Esc twice if you land in the "Describe a task" box).
 
-Now go looking for the report the worker wrote:
+**Action:** Go looking for the report it wrote:
 ```bash
 cat bg_report.md
 ```
 
-**It isn't there.** That is not a failure — it is the lesson:
+**It isn't there.** Try:
 ```bash
 cat .claude/worktrees/*/bg_report.md
-```
-
-There are your four failures. `claude --bg` **isolated the worker into its own git worktree** before letting it touch a file:
-```bash
 git worktree list
 ```
-You'll see your repo on `main`, plus `.claude/worktrees/<random-name>` on a branch `worktree-<random-name>`.
 
-> **Why worktrees are the answer to "what happens when two agents edit the same code?"** Each agent gets its own working copy of the repo on its own branch, so parallel editors never collide — you merge when you're ready. You can ask for one deliberately with `claude -w <name>` (`--worktree`), and a custom subagent with `isolation: worktree` in its frontmatter *always* edits in a disposable worktree, removed automatically if it finishes without changes.
+There are your four failures — and there is why. Before letting the worker write anything, `claude --bg` gave it **its own checkout of the repo** on a branch `worktree-<name>`. Your `main` was never touched. *(Slides: "Worktree Isolation" — what it buys you and how to ask for one deliberately.)*
 
-> **Managing the fleet:** `claude logs <id>` shows recent output without attaching · `claude attach <id>` opens it here · `claude stop <id>` ends it · `claude rm <id>` removes the session **and** its worktree. A session left waiting on an approval holds its worktree **locked**, and plain `git worktree remove` will refuse it — `claude rm` is the clean way out.
-
-> **Why this matters:** subagents die with your session; a background agent is a peer. This is the rung right below **agent teams** (peers that message each other — experimental, `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`) and **dynamic workflows** (a script orchestrating dozens of agents — the `ultracode` keyword). Slides cover both; they're heavy for a shared classroom, so try them on your own account.
+> **Fleet commands:** `claude logs <id>` peeks without attaching · `claude attach <id>` opens it here · `claude stop <id>` ends it · `claude rm <id>` removes the session **and** its worktree. A session left waiting on an approval holds its worktree **locked** and plain `git worktree remove` will refuse it — `claude rm` is the clean way out.
 
 ![Agent view](./images/ccadv18.png?raw=true "Agent view")
 
