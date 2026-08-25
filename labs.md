@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.38 - 08/25/26
+## Revision 1.39 - 08/25/26
 
 <br><br>
 
@@ -691,11 +691,11 @@ Every loop needs a stop condition, and every unattended loop needs a budget. (Re
 <br><br>
 # Lab 4: Agent SDK: Programmatic and Unattended Loops
 ## Lab Purpose
-Run the **same Claude agent from a small Python program** — first read-only, then *unattended*, doing real work safely with nobody watching. Estimated time: 10-12 minutes.
+Run the **same Claude agent from a small Python program** — first read-only, then *unattended*, doing real work safely with nobody watching. 
 
-> **In one line:** the `claude` command is a finished app; the **Agent SDK** is that same engine as a Python library. `query()` does what `claude -p "..."` did in Lab 3, and you set permissions *in code*.
+> **Framing: the **Agent SDK** is like running `claude` but as a Python library. 
 
-> **Diff-merge steps:** `code -d extra/<finished> sdk/<skeleton>` opens the finished file (**left**) beside your skeleton (**right**). Copy each highlighted block left → right (gutter arrow toward the right, or copy/paste) until nothing is highlighted, then **save the right file** (Cmd/Ctrl+S). A skeleton run before merging prints *"still the skeleton"* and stops — re-open the diff, merge what remains, save.
+> We'll assemble some code using **diff-merge steps:** `code -d extra/<finished> sdk/<skeleton>` opens the finished file (**left**) beside your skeleton (**right**). Copy each highlighted block left → right (gutter arrow toward the right, or copy/paste) until nothing is highlighted, then **save the right file** (Cmd/Ctrl+S). A skeleton run before merging prints *"still the skeleton"* and stops — re-open the diff, merge what remains, save.
 
 ---
 <br><br>
@@ -703,15 +703,15 @@ Run the **same Claude agent from a small Python program** — first read-only, t
 ## 1: Install the Agent SDK (Skip if running in a Codespace.)
 **Action:** In a terminal, run:
 ```bash
-python3 -m pip install claude-agent-sdk
+python -m pip install claude-agent-sdk
 ```
 
-> The SDK drives the bundled CLI, so it rides your existing CLI login here — the developer loop. *Shipping* is different: distributed products can't offer claude.ai login and authenticate with an `ANTHROPIC_API_KEY` (or Bedrock / Vertex / Foundry).
+> Info: The SDK drives the bundled CLI, so it rides your existing CLI login here — the developer loop. *Shipping* is different: distributed products can't offer claude.ai login and authenticate with an `ANTHROPIC_API_KEY` (or Bedrock / Vertex / Foundry).
 
 ---
 <br><br>
 
-## 2: View the Skeleton
+## 2: View the Starter Version of our Agent that uses the SDK.
 **Action:** Open the skeleton:
 ```bash
 code sdk/agent_loop.py
@@ -725,7 +725,7 @@ The imports name the pieces you'll use — `query`, `ClaudeAgentOptions`, `Assis
 <br><br>
 
 ## 3: Diff, Merge, and Map It to the CLI
-**Action:** Run the diff, merge the **one highlighted region** (the body of `run_agent()`), save the right file, and close the tab:
+**Action:** Run the diff, merge the **one highlighted region** (the body of `run_agent()`), save the right file, and close the tab to save your changes:
 ```bash
 code -d extra/agent_loop.txt sdk/agent_loop.py
 ```
