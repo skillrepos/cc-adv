@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.37 - 08/25/26
+## Revision 1.38 - 08/25/26
 
 <br><br>
 
@@ -126,6 +126,9 @@ There are four advanced features in the file: **`$ARGUMENTS`** (text typed after
 Commands load at **startup**, so your running session doesn't know `/triage` yet.
 
 **Action:** In Claude, type `/exit`. Then start Claude via `claude`, and run the command below in Claude:
+
+(If Claude offers **"Try the new fullscreen renderer?"**, choose **2. Not now**.)
+
 ```
 /triage app/app.py
 ```
@@ -299,7 +302,7 @@ Create a PreToolUse hook that blocks edits to a protected file and a PostToolUse
 
 ## 1: Set Up the Protected File and Hooks Folder to Implement a Policy.
 
-The policy is that nobody is allowed to edit `config.json` via Claude. (The file is just a stand-in for the credential/config files every real project has.)
+The policy we'll enforce is that nobody is allowed to edit `config.json` via Claude. (The file is just a stand-in for the credential/config files every real project has.)
 
 **Action:** In a regular terminal (not Claude), create the file and the hooks folder:
 ```
@@ -436,7 +439,7 @@ The tool call is **blocked** before it touches the file, and the hook's stderr m
 
 
 ## 8: Generate Some Bash Traffic
-PostToolUse fires *after* a tool call succeeds — it can't block, but it's ideal for auditing and logging.
+PostToolUse fires *after* a tool call succeeds — it can't block, but it's ideal for auditing and logging. So we'll create some activity to be logged by it.
 
 **Action:** Type:
 ```
@@ -461,22 +464,15 @@ Each command Claude ran is there, with its description. Your own `!` commands ar
 ---
 <br><br>
 
-## 10: Prompt vs. Tool vs. Hook Constraints
-Four ways to say "don't do that," in rising order of strength. (Reading only)
+## 10: Exit
 
-- **Prompt constraint** — CLAUDE.md instructions (like Lab 1's *"never commit"* rule): durable, but still only a request.
-- **Tool constraint** — `disallowedTools` removes the tool entirely, for one agent.
-- **Classifier** — auto mode's second *model* judging each risky call: probabilistic.
-- **Hook** — your code, on *every* tool call. Exit 2 is a hard no, even in bypass mode.
+**Action:** In prep for the next lab, type `/exit` to exit Claude Code.
+
 
 > Hooks can also return JSON decisions, rewrite inputs, or inject context, with more handler types and events — full schema: [hooks reference](https://code.claude.com/docs/en/hooks).
 
 ---
 <br><br>
-
-## 11: Exit
-
-**Action:** In prep for the next lab, type `/exit` to exit Claude Code.
 
 ```
 exit
@@ -496,9 +492,10 @@ exit
 ## END OF LAB
 ---
 <br><br>
+
 # Lab 3: Loops Instead of Prompts — `/goal` and `/loop`
 ## Lab Purpose
-Use `/goal` to keep a session working until a condition holds (the **inner loop**), `/loop` to re-run work on a schedule (the **outer loop**), and `claude -p` to run a goal with no session at all. Estimated time: 10-12 minutes.
+Use `/goal` to keep a session working until a condition holds (the **inner loop**), `/loop` to re-run work on a schedule (the **outer loop**), and `claude -p` to run a goal with no session at all. 
 
 **NOTE: Steps 1-8 run in an interactive Claude session. Step 9 runs in a regular terminal. Step 10 is reading.**
 
@@ -506,7 +503,7 @@ Use `/goal` to keep a session working until a condition holds (the **inner loop*
 <br><br>
 
 ## 1: Work on a Throwaway Branch
-`/goal` is about to change real files, and Lab 5 still needs this project's tests to fail.
+`/goal` is about to change real files, and Lab 5 still needs this project's tests to fail. So we'll use Git to work in another branch temporarily.
 
 **Action:** In a terminal, run:
 ```bash
@@ -522,7 +519,7 @@ claude
 <br><br>
 
 ## 2: Set a Goal
-`/goal` sets a **completion condition**. After every turn a small fast model (Haiku) checks it; until it holds, Claude takes another turn on its own instead of handing control back to you.
+`/goal` sets a **completion condition**. After every turn a small fast model (default is Haiku) checks it; until it holds, Claude takes another turn on its own instead of handing control back to you.
 
 **Action:** At the Claude prompt, type:
 ```
@@ -547,9 +544,8 @@ Claude usually fixes all four routes in one turn, so expect a single result card
   Reason: The transcript shows the output: "14 passed, 0 failed" …
 ```
 
-**Action:** Read the **Reason:** line. That is the evaluator — a separate Haiku call — saying *why* it accepted, and it is the whole mechanism: the evaluator has **no tools**, so it can only judge what Claude already put in the transcript. That is why the condition names a *command whose output lands there*; "the code is clean" would be unjudgeable.
+**Action:** Read the **Reason:** line. That is the evaluator — a separate call — saying *why* it accepted, and it is the whole mechanism: the evaluator has **no tools**, so it can only judge what Claude already put in the transcript. That is why the condition names a *command whose output lands there*; "the code is clean" would be unjudgeable.
 
-> **Why you only see one verdict.** The evaluator returns one of three: **not yet met** — the reason feeds back as guidance and Claude takes another turn; **met** — what you just saw, printed as `Goal achieved`; **impossible** — the condition can never hold, so the goal clears and the run is recorded as failed. A one-turn success skips straight to the second, which is why there is no loop to watch here.
 
 ![goal verdicts](./images/ccadv20.png?raw=true "goal verdicts")
 
@@ -562,14 +558,15 @@ Claude usually fixes all four routes in one turn, so expect a single result card
 /goal
 ```
 
-You get the verdict, condition, runtime, turns and token spend. (The evaluator's *reason* isn't on this card — that's the `Ctrl+O` view.)
+You get the verdict, condition, runtime, turns and token spend. (More info can be seen with the `Ctrl+O` toggle.)
 
 ![goal status](./images/ccadv21.png?raw=true "goal status")
 
 ---
 <br><br>
 
-## 5: Confirm the Work, Then Put It Away
+## 5: Confirm the Fixes, then Restore the Failures so they're in place for Lab 5.
+
 **Action:** In a terminal (not the Claude session), run:
 ```bash
 python3 app/test_app.py
@@ -645,23 +642,28 @@ Claude uses `CronList` and `CronDelete` under the hood.
 ---
 <br><br>
 
-## 9: Run the Goal Loop From a Plain Shell
-Steps 6-8 were the **outer** loop — `/loop` re-running a prompt on a timer *inside* your session. This step goes back to the **inner** loop from steps 2-4, `/goal`, and runs it with no interactive session at all. `claude -p` is headless: it starts a session, works the goal to completion, prints the result, and exits. Anything that can run a shell command — a script, a cron job, a build pipeline — can now run that loop for you.
+## 9: (OPTIONAL) Run the Goal Loop From a Plain Shell
+Steps 6-8 were the **outer** loop — `/loop` re-running a prompt on a timer *inside* your session. This step goes back to the **inner** loop, `/goal`, and runs it with no session at all. `claude -p` is headless: it starts a session, works the goal to completion, prints one JSON result, and exits. Anything that can run a shell command — a script, a cron job, a build pipeline — can now run that loop.
 
 **Action:** Exit Claude (*Ctrl+D*) and run in the terminal:
 ```bash
-claude -p "/goal beat.md exists and its last line names the current test pass/fail counts" \
+claude -p "/goal health.md exists and names the pass and fail counts from running python3 app/test_app.py" \
   --permission-mode acceptEdits --allowedTools "Bash(python3:*)" \
   --output-format json | jq '{result, num_turns, total_cost_usd}'
 ```
+![headless goal](./images/ccadv28.png?raw=true "headless goal")
 
-The `--output-format json` wrapper makes every run scriptable and auditable — a machine can read what happened and what it cost. Expect roughly **3 turns and a few cents**.
+**Action:** After it completes, check what it produced:
+```bash
+cat health.md
+```
 
-> **Why 3 turns, when `beat.md` already exists?** This is a *fresh* session with an empty transcript, and the evaluator has no tools — it judges only what **this** run surfaced. So Claude has to read `beat.md` and run the suite to establish what the counts currently are before the condition can be judged at all. **A goal already true in the world still costs turns to prove.** Same no-tools constraint as step 3.
+The counts should match the suite on this branch. `health.md` is throwaway — delete it whenever.
 
-![headless goal](./images/ccadv24.png?raw=true "headless goal")
+> **What just happened.** One shell command ran the whole loop: Claude ran the suite, wrote the file, and the evaluator confirmed it — no prompt, no approval, nobody watching. `--output-format json` is what makes that *usable*: `num_turns` and `total_cost_usd` mean a script can log what a run cost, and a pipeline can fail a build on it.
 
-> **`-p` has no human to click "Yes"** — it starts in `default` mode whatever your interactive default is, so unattended runs pre-approve with `--permission-mode` **and** `--allowedTools`. Drop the `--allowedTools` half and it does *not* fail loudly: `acceptEdits` covers writes, not Bash, so the goal stays unmet and Claude eventually **improvises** — reasoning out what the counts "must be" and writing a confident, wrong `12 passed, 4 failed` (measured: 9 turns / ~$0.41 fabricated vs 3 turns / ~$0.05 real). Bound what it may do, then check what it actually ran. *(Slides: "Anatomy of a Reliable Loop".)*
+
+
 
 ---
 <br><br>
@@ -674,7 +676,7 @@ Every loop needs a stop condition, and every unattended loop needs a budget. (Re
 - **`/loop`'s reach** — its tasks fire only while your session is open. Work that must outlive the session belongs on a scheduler that stays up without you — an OS cron job, or a scheduled task in the Claude cloud/desktop apps.
 
 ## Lab Summary
-✅ You've mastered:
+✅ You've used:
 - `/goal` — an inner loop that works until a condition holds, judged by a separate evaluator model
 - Reading the evaluator's verdicts, and writing a condition it can actually judge
 - `/loop` — an outer loop on an interval, backed by `CronCreate` / `CronList` / `CronDelete`
