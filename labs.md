@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.36 - 08/25/26
+## Revision 1.37 - 08/25/26
 
 <br><br>
 
@@ -33,7 +33,7 @@
 to save changes.  If running locally, use whatever editor you prefer.
 <br><br>
 
-**NOTE:** This course assumes you are already comfortable with the Claude Code basics — running it, permission modes, `/init` and CLAUDE.md, skills, subagents and custom commands. A few steps re-establish that groundwork so the rest of the day has something to build on; those are marked *(recap)* and kept short. Everything else is new ground.
+**NOTE:** This course assumes you are already comfortable with the Claude Code basics — running it, permission modes, `/init` and CLAUDE.md, skills, subagents and custom commands. A few steps re-establish that groundwork so the rest of the day has something to build on. Everything else is new ground.
 
 <br><br>
 
@@ -43,18 +43,21 @@ to save changes.  If running locally, use whatever editor you prefer.
 # Lab 1: Advanced Delegation — Right Model, Right Context, Right Worker
 
 ## Lab Purpose
-Climb the delegation ladder: a parameterized command, a hot-reloaded skill, a forked skill, a Haiku-pinned subagent, and finally a fully detached background agent you manage from the CLI.
+See how we can delegate work at different levels: a parameterized command, a hot-reloaded skill, a forked skill, a Haiku-pinned subagent, and finally a fully detached background agent you manage from the CLI.
 
 ---
 <br><br>
 
-## 1: Start Claude and Initialize *(recap)*
-The repo holds a Flask to-do API in `app/` (its tests fail in 4 places *by design*), plus SDK and MCP skeletons for later labs.
+## 1: Start Claude and Initialize
+This repo holds a Flask to-do API in `app/` (its tests fail in 4 places *by design*), plus SDK and MCP skeletons for later labs.
+Let's get Claude to learn about the repo.
 
 **Action:** In the terminal, start Claude, then initialize the project:
 ```bash
 claude
 ```
+Type in Claude:
+
 ```
 /init
 ```
@@ -67,21 +70,22 @@ claude
 <br><br>
 
 ## 2: Add a Standing Rule
-What `/init` can't discover is *your* policy. Let's add a rule to show how you can add that. **Action:** In Claude, type:
+What `/init` can't discover is *your* policy. Let's add a rule ourselves for that. 
+
+**Action:** In Claude, type:
 ```
 Add this standing rule to CLAUDE.md: Never run git commit or git push in this repo - I handle version control myself. If you think something should be committed, say so and stop.
 ```
 
-Click **CLAUDE.md** in the file list to see your rule land in the standing-rules section. 
-
-> **fyi:** Shared repo rules → CLAUDE.md; personal facts Claude learns about *you* → auto-memory (`/memory` shows the hierarchy).
+Open **CLAUDE.md** to see your rule in the standing-rules section. (In the codespace, you can click the file in the file list.)
 
 ![Add rule](./images/ccadv26.png?raw=true "Add rule")
 
 ---
 <br><br>
 
-## 3: Create a Real Custom Command
+## 3: Create a Custom Command
+
 **Action:** In a separate terminal tab (keep Claude running), create folders for commands and skills. 
 
 ```bash
@@ -111,7 +115,7 @@ Triage the file $ARGUMENTS:
 4) Propose the smallest fix plan (max 5 steps). Do not edit any files.
 ```
 
-Four advanced features here: **`$ARGUMENTS`** (text typed after `/triage`) · **`` !`git status --short` ``** (runs at invocation, output injected) · **`@CLAUDE.md`** (pulled into context) · **`allowed-tools`** (scopes the command, down to `Bash(git status:*)`).
+There are four advanced features in the file: **`$ARGUMENTS`** (text typed after `/triage`) · **`` !`git status --short` ``** (runs at invocation, output injected) · **`@CLAUDE.md`** (pulled into context) · **`allowed-tools`** (scopes the command, down to `Bash(git status:*)`).
 
 ![Creating the triage command](./images/ccadv15.png?raw=true "Creating the triage command")
 
@@ -136,7 +140,7 @@ The triage should flag the API returning **500** where the contract demands **40
 ## 5: Turn the Command Into a Skill — Without Restarting
 Commands have been **merged into skills**: both paths create `/triage`, same frontmatter. What changes is *who can invoke it*. To see this, we'll move the file to the skills area.
 
-**Action:** In your other terminal tab:
+**Action:** In your other terminal tab (one where Claude is not running):
 ```bash
 mkdir -p .claude/skills/triage
 mv .claude/commands/triage.md .claude/skills/triage/SKILL.md
@@ -149,14 +153,14 @@ mv .claude/commands/triage.md .claude/skills/triage/SKILL.md
 
 It works: skill directories are **watched and hot-reloaded** mid-session. Commands and agents are not.
 
-**And `/triage` is no longer only yours to run.** A command's `description` is autocomplete text — nothing happens until you type the slash. A skill's `description` goes into Claude's *context*, so Claude can reach for it on its own. **A command is a skill only you can invoke.** *(Slides: "Custom Commands Are Skills Now".)*
+**And `/triage` is no longer only yours to run.** A command's `description` is autocomplete text — nothing happens until you type the slash. A skill's `description` goes into Claude's *context*, so Claude can reach for it on its own. **A command is a skill only you can invoke.** 
 
 > **If `/triage` isn't found**, restart once — the watcher only follows directories that existed at session start.
 
 ---
 <br><br>
 
-## 6: Fork the Skill — Same Context, Separate Worker
+## 6: Next Level: Fork the Skill — Same Context, Separate Worker
 `context: fork` runs the skill in a **forked subagent**: it inherits your full conversation, but its work stays out of your main context.
 
 **Action:** Edit `.claude/skills/triage/SKILL.md`, add two lines to the frontmatter (see screenshot), and save:
@@ -179,7 +183,8 @@ The triage runs as a delegated task; only the report returns. (The transcript's 
 ---
 <br><br>
 
-## 7: Create a Haiku Subagent
+## 7: Create a Subagent bound to a cheaper, smaller model
+
 **Action:** Let's create a subagent that uses the smaller, cheaper Haiku model. In your terminal tab, create the *agents* folder:
 
 ```bash
@@ -210,38 +215,24 @@ disallowedTools: Write, Edit
 ## 8: Restart Claude and Run the Subagent
 Agents load at startup (they don't hot-reload).
 
-**Action:** In Claude, `/exit`, then `claude`, then (in Claude):
+**Action:** In Claude, `/exit`, then  start it again with `claude`, then enter (in Claude):
 ```
 Use the test-scout subagent to run the test suite and summarize the failures.
 ```
 
-You get a compact report — 10 passed / 4 failed with causes — run on Haiku, with the verbose test output kept out of your context.
+You get a compact report — 10 passed / 4 failed with causes.  This was run on Haiku, with the verbose test output kept out of your context.
 
 ![Haiku test-scout subagent](./images/ccadv8.png?raw=true "Haiku test-scout subagent")
 
 ---
 <br><br>
 
-## 9: Ask for a Deeper Plan
-`ultrathink` anywhere in a prompt requests deeper reasoning **on that turn only**.
+## 9: Send a Worker to the Background
 
-**Action:** Enter the prompt below in Claude:
-```
-ultrathink: Propose a refactoring plan for app/ that fixes the 400/404 contract violations without changing test_app.py. Consider at least two approaches and recommend one. Plan only - do not edit files.
-```
-
-Skim the plan — Lab 3 will *execute* this exact fix. (Ctrl+O shows the detailed transcript; the session-wide effort dial is on the slides.)
-
-![Extended thinking](./images/ccadv3.png?raw=true "Extended thinking")
-
----
-<br><br>
-
-## 10: Send a Worker to the Background
-
-`claude --bg` starts a **detached session** that keeps working while you do something else. With nobody there to click "Yes", a worker must never have to *wait* for approval.  Passing the command line option `--permission-mode dontAsk` **auto-denies** anything not pre-approved instead of queuing a question nobody will answer. And `--allowedTools` lists/allows exactly what the job needs — here the test command and the report write.
+`claude --bg` starts a **detached session** that keeps working while you do something else. With nobody there to click "Yes", a worker must never have to *wait* for approval.  So we pass several command line options: `--permission-mode dontAsk` **auto-denies** anything not pre-approved instead of queuing a question nobody will answer. And `--allowedTools` lists/allows exactly what the job needs. In this case, that's the test command and the report write.
 
 **Action:** In a separate **terminal tab** (leave Claude running), run this complete command:
+
 ```bash
 claude --bg "Run python3 app/test_app.py and write a markdown summary of the failures to bg_report.md - one line per failure naming the contract each violates. python3 is on your PATH - run the tests directly and do not probe the environment first. Do not run any git commands." --permission-mode dontAsk --allowedTools "Bash(python3:*),Write"
 ```
@@ -253,7 +244,7 @@ You get a session ID and management commands back immediately.
 ---
 <br><br>
 
-## 11: Find the Report
+## 10: (OPTIONAL) View and Drill into the Agents List
 **Action:** Still in the terminal tab, list your sessions. After the agent is done, you can view the report:
 ```bash
 claude agents
@@ -268,13 +259,13 @@ Now, you can view the report, which is stored in a separate Git working director
 cat .claude/worktrees/*/bg_report.md
 ```
 
-Before writing anything, `--bg` gave the worker **its own worktree checkout** on a `worktree-<name>` branch; your `main` was never touched. `claude rm <id>` removes a session *and* its worktree. *(Slides: "Worktree Isolation".)*
+Before writing anything, `--bg` gave the worker **its own worktree checkout** on a `worktree-<name>` branch; your `main` was never touched. `claude rm <id>` removes a session *and* its worktree.
 
 
 ---
 <br><br>
 
-## 12: Exit
+## 11: Exit
 
 **Action:** In prep for the next lab, type `/exit` to exit Claude Code.
 ```
@@ -283,12 +274,11 @@ Before writing anything, `--bg` gave the worker **its own worktree checkout** on
 
 ## Lab Summary
 ✅ You've climbed the delegation ladder:
-- One-pass setup: CLAUDE.md + the standing rule the whole day leans on
+- One-pass setup: CLAUDE.md + your own rule
 - Built `/triage` with `$ARGUMENTS`, inline bash context, `@file` references and scoped `allowed-tools`
 - Converted it to a **skill** — hot-reloaded without a restart
 - Forked it with `context: fork` — full conversation, separate workspace
 - Delegated verbose test output to a `model: haiku` subagent
-- Asked for a deeper plan with `ultrathink`
 - Detached a worker with `claude --bg`, pre-approved with mode **and** `--allowedTools`
 - Found its output in its own **git worktree** — isolation you can see
 
