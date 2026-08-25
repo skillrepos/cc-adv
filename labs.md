@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, CI automation, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.26 - 08/24/26
+## Revision 1.27 - 08/24/26
 
 <br><br>
 
@@ -305,8 +305,9 @@ Create a PreToolUse hook that blocks edits to a protected file and a PostToolUse
 ---
 <br><br>
 
-## 1: Set Up the Protected File and Hooks Folder
-The policy: nobody edits `config.json` — a stand-in for the credential/config files every real project has.
+## 1: Set Up the Protected File and Hooks Folder to Implement a Policy.
+
+The policy is that nobody is allowed to edit `config.json` via Claude. (The file is just a stand-in for the credential/config files every real project has.)
 
 **Action:** In a regular terminal (not Claude), create the file and the hooks folder:
 ```
@@ -317,7 +318,8 @@ mkdir -p .claude/hooks
 ---
 <br><br>
 
-## 2: Create the Guard Script
+## 2: Create the Guard Script That will be used by the Hook
+
 Claude Code sends the tool call as JSON on the script's *stdin*. The script answers with an exit code — **0** = no objection, **2** = block it — and whatever it prints to *stderr* goes back to Claude as the reason.
 
 **Action:** Create `.claude/hooks/protect-config.sh` with these contents, and save it:
@@ -350,7 +352,8 @@ chmod +x .claude/hooks/protect-config.sh
 <br><br>
 
 ## 4: Wire Up the Hooks in settings.json
-Each entry names an *event*, a *matcher* filtering by tool name, and the *handler* to run.
+
+Each entry names an *event*, a *matcher* filtering by tool name, and the *handler* to run. Notice that we're adding not only the hook to protect the config file, but also a second hook that will log bash commands that Claude runs.
 
 **Action:** Create `.claude/settings.json` with these contents, and save it.
 
@@ -384,7 +387,7 @@ Each entry names an *event*, a *matcher* filtering by tool name, and the *handle
 }
 ```
 
-`Edit|Write` fires on either tool; `Bash` matches only Bash. The guard uses the *exec form* (`args: []` — no shell); the logger omits `args` and runs in *shell form*, which its `>>` redirect needs.
+In the *matcher* sections, `Edit|Write` fires on either tool; `Bash` matches only Bash. The guard uses the *exec form* (`args: []` — no shell); the logger omits `args` and runs in *shell form*, which its `>>` redirect needs.
 
 ![The hooks settings file](./images/cc-se5.png?raw=true "The hooks settings file")
 
@@ -392,7 +395,8 @@ Each entry names an *event*, a *matcher* filtering by tool name, and the *handle
 <br><br>
 
 ## 5: Start Claude in Bypass Mode
-Hooks fire at the *tool boundary*, outside the permission system — your code keeps its veto even with every permission check off.
+
+Hooks fire at the *tool boundary*, outside the permission system — your hook code is checked even with every permission check off.
 
 **Action:** In a terminal other than your original one, start Claude:
 ```
@@ -403,18 +407,18 @@ claude --dangerously-skip-permissions
 claude-yolo (if running in the codespace)
 ```
 
-> Accept the red **"WARNING: … Bypass Permissions mode"** screen — choose **2. Yes, I accept**. The status line now reads *bypass permissions on*.
+> Pay attention on the warning screen — choose **2. Yes, I accept**. The status line now reads *bypass permissions on*.
 
 ---
 <br><br>
 
 ## 6: Inspect the Hooks with /hooks
-**Action:** Type:
+**Action:** In Claude, type:
 ```
 /hooks
 ```
 
-The first screen lists hook **events** — yours are **PreToolUse (1)** and **PostToolUse (1)**. This menu only *shows* hooks; to change one you edit `.claude/settings.json`.
+The screen that comes up lists hook **events** — yours are **PreToolUse (1)** and **PostToolUse (1)**. (This menu only *shows* hooks; to change one you edit `.claude/settings.json`.)
 
 ![The /hooks menu](./images/cc-se6.png?raw=true "The /hooks menu")
 
@@ -438,18 +442,8 @@ The tool call is **blocked** before it touches the file, and the hook's stderr m
 ---
 <br><br>
 
-## 8: Look at How Claude Reacts
-Ours told Claude to suggest the change instead — read its response. Then verify the file is untouched, in your **original (plain) terminal** (in bypass mode, an in-session `! cat` could tempt Claude to *finish* the edit via Bash, which `Edit|Write` doesn't block):
-```bash
-cat config.json
-```
 
-> **Spot the loophole:** the matcher only guards `Edit|Write` — real policies add a Bash matcher too. If Claude offers to work around the block, tell it no.
-
----
-<br><br>
-
-## 9: Generate Some Bash Traffic
+## 8: Generate Some Bash Traffic
 PostToolUse fires *after* a tool call succeeds — it can't block, but it's ideal for auditing and logging.
 
 **Action:** Type:
@@ -462,7 +456,7 @@ Let Claude run its commands.
 ---
 <br><br>
 
-## 10: Check the Audit Log
+## 9: Check the Audit Log
 **Action:** Type:
 ```
 ! cat .claude/bash-command-log.txt
@@ -475,7 +469,7 @@ Each command Claude ran is there, with its description. Your own `!` commands ar
 ---
 <br><br>
 
-## 11: Prompt vs. Tool vs. Hook Constraints
+## 10: Prompt vs. Tool vs. Hook Constraints
 Four ways to say "don't do that," in rising order of strength. (Reading only)
 
 - **Prompt constraint** — CLAUDE.md instructions (like Lab 1's *"never commit"* rule): durable, but still only a request.
@@ -488,9 +482,9 @@ Four ways to say "don't do that," in rising order of strength. (Reading only)
 ---
 <br><br>
 
-## 12: Exit
+## 11: Exit
 
-**Action:** In prep for the next lab, type `exit` to exit Claude Code.
+**Action:** In prep for the next lab, type `/exit` to exit Claude Code.
 
 ```
 exit
