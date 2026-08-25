@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
-## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and your own MCP server
+## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.41 - 08/25/26
+## Revision 1.42 - 08/25/26
 
 <br><br>
 
@@ -875,9 +875,8 @@ You've *used* MCP servers; now **build one**. Complete a Python MCP server expos
 <br><br>
 
 ## 1: Complete the Server — Diff-Merge the Three Tools
-The MCP SDK makes a server out of ordinary Python functions: decorate one with `@mcp.tool()` and its **docstring and type hints become the tool's documentation and input schema** — what Claude reads when choosing a tool.
+The MCP SDK makes a server out of ordinary Python functions: decorate one with `@mcp.tool()` and its **docstring and type hints become the tool's documentation and input schema** — what Claude reads when choosing a tool. We'll be assembling one for project health.
 
-> Older tutorials and blog posts show a `FastMCP` class — the SDK renamed it `MCPServer` in 2.0. The decorators below are identical either way.
 
 Already in place in the skeleton: the `MCPServer("project-health")` instance (that name becomes the `mcp__project-health__...` prefix) and the `mcp.run()` call that starts the stdio transport. Missing are the three tools — `run_tests()` (runs `app/test_app.py`), `count_todos()` (TODO/FIXME counts per file), and `project_stats()` (file and line counts). That's your merge.
 
@@ -992,6 +991,8 @@ You should see a line like **`Called project-health 2 times`**, then a synthesiz
 
 ---
 <br><br>
+
+**OPTIONAL** Steps 9-11: Get a personal access token for GitHub and connect Claude to the GitHub MCP server and use it.
 
 ## 9: Get a GitHub Token
 Your server needed no credentials — it's a local process you already trust. **Remote** servers are someone else's service over HTTPS, so they need authentication. GitHub publishes one, and everything else in this lab applies to it unchanged.
