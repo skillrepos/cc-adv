@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.39 - 08/25/26
+## Revision 1.41 - 08/25/26
 
 <br><br>
 
@@ -695,6 +695,8 @@ Run the **same Claude agent from a small Python program** — first read-only, t
 
 > **Framing: the **Agent SDK** is like running `claude` but as a Python library. 
 
+> **"Unattended" means one thing: no permission prompt is possible.** Nobody is there to click "Yes," so every permission question has to be answered *before* it is asked. Lab 3 answered them with flags. Steps 4-5 answer them with a list in code. From step 6 on you answer them with **code that runs on every call** — the only option that can judge the *arguments*, not just the tool name.
+
 > We'll assemble some code using **diff-merge steps:** `code -d extra/<finished> sdk/<skeleton>` opens the finished file (**left**) beside your skeleton (**right**). Copy each highlighted block left → right (gutter arrow toward the right, or copy/paste) until nothing is highlighted, then **save the right file** (Cmd/Ctrl+S). A skeleton run before merging prints *"still the skeleton"* and stops — re-open the diff, merge what remains, save.
 
 ---
@@ -752,29 +754,16 @@ Every piece maps to something you've already used:
 python3 sdk/agent_loop.py "What files are in the sdk directory? Answer in one sentence."
 ```
 
-You'll see `[claude]` lines, likely a `[tool]` line or two, then the stats.
+You'll see `[claude]` lines, likely a `[tool]` line or two, then the stats. **Each `[tool]` line is one trip around the loop** — that is what *Turns used* counts.
 
-> **`allowed_tools` is not an exhaustive whitelist** — a built-in set of read-only commands (`ls`, `cat`, `git status`, ...) never needs approval, so a `[tool] Bash` line here is normal. `allowed_tools` governs the calls that would otherwise stop and ask — which step 6 shows with `Write`.
+> **`allowed_tools` is not an exhaustive whitelist** — a built-in set of read-only commands (`ls`, `cat`, `git status`, ...) never needs approval, so a `[tool] Bash` line here is normal. `allowed_tools` governs the calls that would otherwise stop and ask — which the next step shows with `Write`.
 
 ![sdk run](./images/cc-se60.png?raw=true "sdk run")
 
 ---
 <br><br>
 
-## 5: Force Multiple Turns
-**Action:** Run a prompt that forces tool use:
-```bash
-python3 sdk/agent_loop.py "Find every TODO comment in the .py files under sdk/ and mcpserver/ and list them"
-```
-
-Watch the `[tool]` lines: read-only calls (`Grep`, usually more than once), then the answer. Each `[tool]` line is one trip around the loop; **Turns used** counts those trips.
-
-![sdk run](./images/cc-se61.png?raw=true "sdk run")
-
----
-<br><br>
-
-## 6: Try to Write Without Pre-Approval
+## 5: Try to Write Without Pre-Approval
 **Action:** Run:
 ```bash
 python3 sdk/agent_loop.py "Create a file named sdk_test.txt containing hello"
@@ -787,8 +776,8 @@ The write isn't blocked — it just isn't *pre-approved*, and with no human atta
 ---
 <br><br>
 
-## 7: View the Unattended Skeleton and Its Gate
-Unattended there is no human to ask, so your code must decide — and must see **every** call.
+## 6: View the Unattended Skeleton and Its Gate
+A list can only say *which tools*. Only code can judge *this call* — it is the same `Bash` tool whether the command is `ls` or `rm -rf`. So from here your code decides, and it has to see **every** call.
 
 **Action:** Open it:
 ```bash
@@ -806,7 +795,7 @@ The gate is a **PreToolUse hook** — `gatekeeper()` — run by the CLI *before*
 ---
 <br><br>
 
-## 8: Diff and Merge the Unattended Agent
+## 7: Diff and Merge the Unattended Agent
 **Action:** Run the diff. This time there are **two highlighted regions** — the `gatekeeper()` body and the `main()` body. Merge **both** left → right, save the right file, and close:
 ```bash
 code -d extra/auto_agent.txt sdk/auto_agent.py
@@ -817,7 +806,7 @@ code -d extra/auto_agent.txt sdk/auto_agent.py
 ---
 <br><br>
 
-## 9: Run It Unattended
+## 8: Run It Unattended
 **Action:** Run:
 ```bash
 python3 sdk/auto_agent.py
@@ -835,14 +824,18 @@ You should see every `.py` file in `app/` listed with a one-line description.
 ---
 <br><br>
 
-## 10: Trigger the Deny Path
-**Action:** In `sdk/auto_agent.py`, replace the **whole** `TASK = ( … )` block — all three lines, through the closing `)` — with this single line, and **save**:
-```python
-TASK = "Use a Bash rm command to delete agent_report.md. Then say DONE."
-```
-(Replacing only the first line leaves fragments behind and Python stops with an `IndentationError`.)
+## 9: Trigger the Deny Path
+The file already carries a second task — one that asks for a destructive command. Switch to it.
 
-Run it again (`python3 sdk/auto_agent.py`) and watch for the deny line:
+**Action:** In `sdk/auto_agent.py`, find this line near the top, change `TASK` to `TASK_DENY`, and **save**:
+```python
+ACTIVE_TASK = TASK
+```
+
+**Action:** Run it again and watch for the deny line:
+```bash
+python3 sdk/auto_agent.py
+```
 ```
   [gatekeeper] DENIED: Bash -> 'rm -f agent_report.md'
 ```
@@ -857,34 +850,22 @@ ls agent_report.md
 ---
 <br><br>
 
-## 11: Connect It Back to the CLI
-**Action:** Run the read-only program's CLI equivalent and compare:
-```bash
-claude -p "What files are in the sdk directory? Answer in one sentence." --output-format json | jq '{result: .result, num_turns: .num_turns, duration_ms: .duration_ms}'
-```
-
-The JSON fields mirror the `ResultMessage` attributes your program printed. Same loop, different driver.
-
-> **Going further:** Lab 1's **auto-memory** loads into the SDK's system prompt at session start — but it saves with the ordinary `Write`/`Edit` tools, so an `allowed_tools` that omits `Write` silently can't record. Disable with `autoMemoryEnabled: false`. See the [Agent SDK docs](https://code.claude.com/docs/en/agent-sdk/overview).
-
----
-<br><br>
-
 ## Lab Summary
 ✅ You've built and exercised:
 - A read-only `query()` loop merged from skeleton to working program
 - An unattended agent gated by a PreToolUse hook, plus `allowed_tools` and `max_turns`
 - Why `can_use_tool` is not a universal gate (it only sees "ask" calls)
 - The deny path — blocking a destructive command programmatically
-- The CLI-to-SDK mapping: same loop, programmatic driver
 - That the SDK loads `.claude/` config by default; `setting_sources=[]` is the isolation switch
+
+> **Going further:** Lab 1's **auto-memory** loads into the SDK's system prompt at session start — but it saves with the ordinary `Write`/`Edit` tools, so an `allowed_tools` that omits `Write` silently can't record. Disable with `autoMemoryEnabled: false`. See the [Agent SDK docs](https://code.claude.com/docs/en/agent-sdk/overview).
 
 <br><br>
 ---
 ## END OF LAB
 ---
 <br><br>
-# Lab 5: Capstone: Build a Custom MCP Server
+# Lab 5: Build a Custom MCP Server
 ## Lab Purpose
 You've *used* MCP servers; now **build one**. Complete a Python MCP server exposing three "project health" tools, register it at project scope, drive it from natural-language prompts, then connect a real remote server. Estimated time: 10-12 minutes.
 
@@ -1083,7 +1064,7 @@ claude mcp remove github --scope project
 (Leaving it is fine too — it's your repo's feature now.)
 
 ## Lab Summary
-✅ In the capstone you've:
+✅ You've:
 - Completed an MCP server: three `@mcp.tool()` functions whose docstrings are the tool documentation
 - Learned the stdio contract (silence = waiting for a client)
 - Registered it at project scope and read the shareable `.mcp.json`

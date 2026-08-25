@@ -22,6 +22,12 @@ TASK = (
     "directory with a one-line description of each. Then say DONE."
 )
 
+# Lab step 9 uses this one to exercise the gatekeeper's deny path.
+TASK_DENY = "Use a Bash rm command to delete agent_report.md. Then say DONE."
+
+# Which task this run sends. Step 9: change TASK to TASK_DENY.
+ACTIVE_TASK = TASK
+
 
 async def gatekeeper(input_data, tool_use_id, context):
     """PreToolUse gate: deny destructive Bash, allow everything else. Never asks a human."""
@@ -46,7 +52,7 @@ async def gatekeeper(input_data, tool_use_id, context):
 
 
 async def prompt_stream():
-    yield {"type": "user", "message": {"role": "user", "content": TASK}}
+    yield {"type": "user", "message": {"role": "user", "content": ACTIVE_TASK}}
 
 
 async def main() -> None:
