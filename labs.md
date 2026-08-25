@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.42 - 08/25/26
+## Revision 1.43 - 08/25/26
 
 <br><br>
 
@@ -530,7 +530,7 @@ Setting the goal **starts a turn immediately** — watch for `◎ /goal active` 
 
 ![goal set](./images/ccadv19.png?raw=true "goal set")
 
-> **This is Lab 1's plan, executed.** In Lab 1 you had Claude *plan* the 400/404 fix; here it does the work and decides for itself when it's finished.
+> **This is Lab 1's triage, executed.** In Lab 1, `/triage app/app.py` flagged the 400/404 contract violations and proposed a fix plan — and stopped there, because the command forbids editing files. Here Claude does the work, and decides for itself when it's finished.
 
 ---
 <br><br>
