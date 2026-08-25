@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.32 - 08/25/26
+## Revision 1.33 - 08/25/26
 
 <br><br>
 
@@ -134,7 +134,7 @@ The triage should flag the API returning **500** where the contract demands **40
 <br><br>
 
 ## 5: Turn the Command Into a Skill — Without Restarting
-Commands have been **merged into skills**: both paths create `/triage`, same frontmatter. To see this, we'll move the file to the skills area.
+Commands have been **merged into skills**: both paths create `/triage`, same frontmatter. What changes is *who can invoke it*. To see this, we'll move the file to the skills area.
 
 **Action:** In your other terminal tab:
 ```bash
@@ -148,6 +148,8 @@ mv .claude/commands/triage.md .claude/skills/triage/SKILL.md
 ```
 
 It works: skill directories are **watched and hot-reloaded** mid-session. Commands and agents are not.
+
+**And `/triage` is no longer only yours to run.** A command's `description` is autocomplete text — nothing happens until you type the slash. A skill's `description` goes into Claude's *context*, so Claude can reach for it on its own. **A command is a skill only you can invoke.** *(Slides: "Custom Commands Are Skills Now".)*
 
 > **If `/triage` isn't found**, restart once — the watcher only follows directories that existed at session start.
 
