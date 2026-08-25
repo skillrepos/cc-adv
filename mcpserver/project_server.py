@@ -2,7 +2,7 @@
 """Lab 5 (Capstone): Your own MCP server -- "project-health".
 
 An MCP server is just a process that speaks the Model Context Protocol over
-stdin/stdout. FastMCP (from the official Python MCP SDK) hides the protocol:
+stdin/stdout. MCPServer (from the official Python MCP SDK) hides the protocol:
 you write plain Python functions, decorate them with @mcp.tool(), and the
 docstring + type hints become the tool's documentation and input schema --
 exactly what Claude reads when it decides which tool to call.
@@ -12,19 +12,19 @@ This server gives Claude Code three "project health" tools for THIS repo:
   count_todos()   -- count TODO/FIXME comments across the project's code
   project_stats() -- file and line counts by language
 
-[Lab 5 - Advanced Claude Code - Rev 1.0 - 07/07/26]
+[Lab 5 - Advanced Claude Code - Rev 1.1 - 08/25/26]
 """
 import pathlib
 import subprocess
 import sys
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server import MCPServer
 
 # The repo root, resolved relative to this file -- so the tools work no matter
 # which directory the server process is started from.
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
-mcp = FastMCP("project-health")
+mcp = MCPServer("project-health")
 
 # ----------------------------------------------------------------------
 # SKELETON BODY -- replace everything between these dashed lines by

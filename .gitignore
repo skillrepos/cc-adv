@@ -245,3 +245,11 @@ __marimo__/
 
 # Scratch and working directories (_backups/, _to_delete/, ...)
 _*/
+
+# Student-generated Claude Code project config. Everything under .claude/ is
+# created during the labs (commands, skills, agents, hooks, settings.json,
+# loop.md) - the repos ship none of it. Ignoring the whole directory also stops
+# a lab's `git add -A` from sweeping it onto a throwaway branch, which would
+# delete it from the working tree on the next branch switch. If a course ever
+# needs to SHIP a file from here, allow-list it (e.g. !.claude/settings.json).
+.claude/

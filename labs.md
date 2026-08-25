@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
-## Go beyond the basics — advanced delegation, hooks, loops, CI automation, the Agent SDK, and your own MCP server
+## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.27 - 08/24/26
+## Revision 1.32 - 08/25/26
 
 <br><br>
 
@@ -506,9 +506,9 @@ exit
 <br><br>
 # Lab 3: Loops Instead of Prompts — `/goal` and `/loop`
 ## Lab Purpose
-Use `/goal` to keep a session working until a condition holds (the **inner loop**), `/loop` to re-run work on a schedule (the **outer loop**), and `claude -p` to run a goal with no session at all — then read how GitHub Actions moves it off your machine. Estimated time: 10-12 minutes.
+Use `/goal` to keep a session working until a condition holds (the **inner loop**), `/loop` to re-run work on a schedule (the **outer loop**), and `claude -p` to run a goal with no session at all. Estimated time: 10-12 minutes.
 
-**NOTE: Steps 1-8 run in an interactive Claude session. Step 9 runs in a regular terminal. Steps 10-11 are reading.**
+**NOTE: Steps 1-8 run in an interactive Claude session. Step 9 runs in a regular terminal. Step 10 is reading.**
 
 ---
 <br><br>
@@ -590,7 +590,7 @@ git switch -
 <br><br>
 
 ## 6: Schedule a Repeating Prompt with `/loop`
-That was the inner loop; `/loop` re-runs a prompt on an interval for as long as the session stays open.
+The `/goal` from steps 2-4 was the **inner loop**: one session working turn after turn until its condition held. `/loop` is the **outer loop**: it re-runs a prompt you give it on a timer, for as long as the session stays open.
 
 **Action:** Back in the Claude session, type:
 ```
@@ -606,13 +606,13 @@ Claude converts the interval to a cron expression and calls the `CronCreate` too
 
 ![loop scheduled](./images/ccadv22.png?raw=true "loop scheduled")
 
-> Leave it running and move on. Units are `s`/`m`/`h`/`d`; cron granularity is one minute, and fire times jitter — up to half the interval late.
+> Leave it running and move on. Intervals take `s`/`m`/`h`/`d` units; cron underneath means nothing fires more than once a minute. Fire times are also deliberately staggered (so everyone's tasks don't hit at the same instant) by up to half the interval — so expect lines ~2 minutes apart but *not on* the 2-minute marks, and allow up to ~3 minutes for the first one. It isn't broken, it's pacing.
 
 ---
 <br><br>
 
 ## 7: Give Bare `/loop` a Default Prompt
-`/loop` with **no prompt** runs a built-in maintenance prompt; a `loop.md` file replaces it with your own.
+Step 6's loop ran a prompt you typed. Plain `/loop` — no prompt at all — also works: it falls back to a **maintenance prompt**, generic "check on the project" housekeeping instructions built into Claude Code. A `loop.md` file replaces that generic default with standing instructions of your own.
 
 **Action:** Create `.claude/loop.md` with these contents, and save:
 
@@ -622,13 +622,13 @@ names and the contract each one violates - do not fix them.
 If everything passes, say so in one line.
 ```
 
-Project scope (`.claude/loop.md`) wins over user scope (`~/.claude/loop.md`), and edits take effect on the next iteration.
+From now on, bare `/loop` in this project runs *your* prompt. Project scope (`.claude/loop.md`) wins over user scope (`~/.claude/loop.md`), and edits take effect on the loop's next pass.
 
 ---
 <br><br>
 
 ## 8: Inspect and Cancel the Loop
-Scheduled tasks are **session-scoped**: they die with the conversation, restore on `claude --resume`, and expire after 7 days.
+"Loop" is the command's name — but what `CronCreate` stored in step 6 is called a **scheduled task**, and that's the term to use when asking Claude about it. Scheduled tasks are **session-scoped**: they die with the conversation, restore on `claude --resume`, and expire after 7 days.
 
 **Action:** Check that the loop has fired at least once:
 ```
@@ -648,7 +648,7 @@ Claude uses `CronList` and `CronDelete` under the hood.
 <br><br>
 
 ## 9: The Same Loop With No Session at All
-`/goal` also works headless — one invocation runs the whole loop to completion. This is the unit that CI, cron and scripts multiply.
+So far every loop needed you sitting in an interactive session. `claude -p` runs **headless**: it starts a session, runs a `/goal` loop to completion, prints the result, and exits — the whole loop packed into one ordinary shell command. And anything that can run a shell command — a script, a cron job, a build pipeline — can now run the loop for you.
 
 **Action:** Exit Claude (*Ctrl+D*) and run in the terminal:
 ```bash
@@ -657,7 +657,7 @@ claude -p "/goal beat.md exists and its last line names the current test pass/fa
   --output-format json | jq '{result, num_turns, total_cost_usd}'
 ```
 
-`-p` works, prints, and exits; the JSON wrapper makes every run scriptable and auditable. Expect roughly **3 turns and a few cents**.
+The `--output-format json` wrapper makes every run scriptable and auditable — a machine can read what happened and what it cost. Expect roughly **3 turns and a few cents**.
 
 ![headless goal](./images/ccadv24.png?raw=true "headless goal")
 
@@ -666,61 +666,12 @@ claude -p "/goal beat.md exists and its last line names the current test pass/fa
 ---
 <br><br>
 
-## 10: The Same Engine on GitHub's Runners
-`claude-code-action@v1` runs this exact engine in CI. (Reading only — the workshop repo isn't yours to wire up.)
-
-**The responder.** With **no `prompt:`**, a teammate comments `@claude fix the TypeError` on a PR or issue, and Claude answers on GitHub's runners:
-
-```yaml
-name: Claude Code
-on:
-  issue_comment:
-    types: [created]
-  pull_request_review_comment:
-    types: [created]
-jobs:
-  claude:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-```
-
-**The outer loop in CI.** With a **`prompt:`** and a `schedule:` trigger, it's `/loop` on infrastructure that doesn't need your laptop open:
-
-```yaml
-name: Daily Report
-on:
-  schedule:
-    - cron: "0 9 * * 1-5"
-jobs:
-  report:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          prompt: "Run python3 app/test_app.py and summarize the failures as a markdown report"
-          claude_args: |
-            --max-turns 5
-            --model sonnet
-```
-
-`claude_args` passes through the same CLI flags you used in step 9 — `--max-turns`, `--allowedTools`, `--model`, `--append-system-prompt`.
-
----
-<br><br>
-
-## 11: Know the Bounds
+## 10: Know the Bounds
 Every loop needs a stop condition, and every unattended loop needs a budget. (Reading only)
 
 - **Bound the goal** — a condition can carry its own limit: `…or stop after 20 turns`.
-- **Bound the job** — `--max-turns` plus a workflow-level `timeout-minutes`.
-- **`/loop`'s reach** — its tasks fire only while the session is open; to outlive one, use cloud Routines, a Desktop scheduled task, or a `schedule:` trigger.
-- **CI security baseline** — the key comes only from `${{ secrets.ANTHROPIC_API_KEY }}`; minimal App permissions; review Claude's PRs like any contributor's.
-
-> **Homework:** in a repo you own, `/install-github-app` sets up the app and secret; commit `claude.yml`, open an issue, and comment `@claude suggest an improvement to the README`.
+- **Bound the job** — `--max-turns` caps how far a headless run can go before it stops on its own.
+- **`/loop`'s reach** — its tasks fire only while your session is open. Work that must outlive the session belongs on a scheduler that stays up without you — an OS cron job, or a scheduled task in the Claude cloud/desktop apps.
 
 ## Lab Summary
 ✅ You've mastered:
@@ -729,8 +680,7 @@ Every loop needs a stop condition, and every unattended loop needs a budget. (Re
 - `/loop` — an outer loop on an interval, backed by `CronCreate` / `CronList` / `CronDelete`
 - `loop.md` — replacing the built-in maintenance prompt with your own
 - Running the same goal headless with `claude -p` and `--output-format json`
-- How `claude-code-action@v1` runs the same engine in CI (reference)
-- Bounding a loop: stop clauses, `--max-turns`, `timeout-minutes`
+- Bounding a loop: stop clauses and `--max-turns`
 
 <br><br>
 ---
@@ -754,7 +704,7 @@ Run the **same Claude agent from a small Python program** — first read-only, t
 python3 -m pip install claude-agent-sdk
 ```
 
-> The SDK drives the bundled CLI, so it rides your existing CLI login here — the developer loop. *Shipping* is different: distributed products can't offer claude.ai login and authenticate with an `ANTHROPIC_API_KEY` (or Bedrock / Vertex / Foundry) — the same secret Lab 3's CI workflows used.
+> The SDK drives the bundled CLI, so it rides your existing CLI login here — the developer loop. *Shipping* is different: distributed products can't offer claude.ai login and authenticate with an `ANTHROPIC_API_KEY` (or Bedrock / Vertex / Foundry).
 
 ---
 <br><br>
@@ -784,7 +734,7 @@ Every piece maps to something you've already used:
 |---|---|
 | `query(prompt=..., options=...)` | `claude -p "<prompt>"` (Lab 3) |
 | `ClaudeAgentOptions(allowed_tools=[...])` | `--allowedTools "..."` (Lab 3) |
-| `ClaudeAgentOptions(max_turns=...)` | `--max-turns` / `claude_args` (Lab 3) |
+| `ClaudeAgentOptions(max_turns=...)` | `--max-turns` (Lab 3) |
 | iterating `AssistantMessage` / `ToolUseBlock` / `ResultMessage` | `--output-format stream-json` events |
 
 `query()` returns an async iterator; your loop prints `[claude]` lines for text and `[tool]` lines for each call, ending with a `ResultMessage` of stats.
@@ -934,39 +884,19 @@ The JSON fields mirror the `ResultMessage` attributes your program printed. Same
 <br><br>
 # Lab 5: Capstone: Build a Custom MCP Server
 ## Lab Purpose
-You've *used* MCP servers; now **build one**. Complete a Python FastMCP server exposing three "project health" tools, register it at project scope, and drive it from natural-language prompts. Estimated time: 10-12 minutes.
+You've *used* MCP servers; now **build one**. Complete a Python MCP server exposing three "project health" tools, register it at project scope, drive it from natural-language prompts, then connect a real remote server. Estimated time: 10-12 minutes.
 
 > **MCP in one paragraph:** an MCP server is a process Claude Code talks to over stdin/stdout (or HTTP), exposing *tools* Claude can call. Add one with `claude mcp add <name> -- <command>`, inspect it with `/mcp`; its tools are named `mcp__<server>__<tool>`. Today the server is yours.
 
 ---
 <br><br>
 
-## 1: Tour the Server Skeleton
-FastMCP makes a server out of ordinary Python functions: decorate one with `@mcp.tool()` and its **docstring and type hints become the tool's documentation and input schema** — what Claude reads when choosing a tool.
+## 1: Complete the Server — Diff-Merge the Three Tools
+The MCP SDK makes a server out of ordinary Python functions: decorate one with `@mcp.tool()` and its **docstring and type hints become the tool's documentation and input schema** — what Claude reads when choosing a tool.
 
-**Action:** Open the skeleton:
-```bash
-code mcpserver/project_server.py
-```
+> Older tutorials and blog posts show a `FastMCP` class — the SDK renamed it `MCPServer` in 2.0. The decorators below are identical either way.
 
-Already in place: the `FastMCP("project-health")` instance (that name becomes the `mcp__project-health__...` prefix) and the `mcp.run()` call that starts the stdio transport. The three tools are missing — that's your merge.
-
----
-<br><br>
-
-## 2: Prove It's Still the Skeleton
-**Action:** Run:
-```bash
-python3 mcpserver/project_server.py
-```
-
-You should see the *"still the skeleton"* message and the program stops.
-
----
-<br><br>
-
-## 3: Diff-Merge the Three Tools
-The diff is exactly the three `@mcp.tool()` functions: `run_tests()` (runs `app/test_app.py`), `count_todos()` (TODO/FIXME counts per file), and `project_stats()` (file and line counts).
+Already in place in the skeleton: the `MCPServer("project-health")` instance (that name becomes the `mcp__project-health__...` prefix) and the `mcp.run()` call that starts the stdio transport. Missing are the three tools — `run_tests()` (runs `app/test_app.py`), `count_todos()` (TODO/FIXME counts per file), and `project_stats()` (file and line counts). That's your merge.
 
 **Action:** Run the diff, merge the **one highlighted region** left → right, save the right file, and close the tab:
 ```bash
@@ -980,7 +910,7 @@ As you merge, read the docstrings — each tells Claude *when* to reach for that
 ---
 <br><br>
 
-## 4: Start It Once by Hand
+## 2: Start It Once by Hand
 "Success" for a stdio server is **silence** — it's waiting for a client to speak JSON-RPC on stdin.
 
 **Action:** Run:
@@ -993,7 +923,7 @@ Nothing appears — correct. (The skeleton message means the merge didn't save.)
 ---
 <br><br>
 
-## 5: Register It at Project Scope
+## 3: Register It at Project Scope
 Project scope writes the config to `.mcp.json` in the repo root — commit it and everyone who clones the project gets your server.
 
 **Action:** Run (the `--` separates Claude's options from the server's command line):
@@ -1011,7 +941,7 @@ cat .mcp.json
 ---
 <br><br>
 
-## 6: Health-Check the Connection
+## 4: Health-Check the Connection
 `claude mcp list` actually starts each server and reports whether it connects — your first diagnostic stop.
 
 **Action:** Run:
@@ -1026,7 +956,7 @@ At project scope it shows **⏸ Pending approval (run `claude` to approve)** —
 ---
 <br><br>
 
-## 7: Start Claude and Approve Your Server
+## 5: Start Claude and Approve Your Server
 Because `.mcp.json` can arrive in a repo from *anyone*, Claude Code asks before running project-scoped servers.
 
 **Action:** Start Claude (*don't use* bypass mode here) and approve the server when prompted:
@@ -1039,7 +969,7 @@ claude
 ---
 <br><br>
 
-## 8: Inspect It with /mcp
+## 6: Inspect It with /mcp
 **Action:** Type:
 ```
 /mcp
@@ -1052,7 +982,7 @@ Select the **project-health** server and browse its three tools. Select one — 
 ---
 <br><br>
 
-## 9: Drive the Server: Run the Test Suite
+## 7: Drive the Server: Run the Test Suite
 **Action:** Type:
 ```
 Use the project-health server to run the test suite and summarize what's failing and why.
@@ -1065,7 +995,7 @@ Claude calls `mcp__project-health__run_tests`, gets your captured test output ba
 ---
 <br><br>
 
-## 10: Drive the Server: Full Health Report
+## 8: Drive the Server: Full Health Report
 **Action:** Type:
 ```
 Using the project-health tools, give me a one-paragraph health report on this repo: test status, TODO count, and overall size.
@@ -1080,13 +1010,60 @@ You should see a line like **`Called project-health 2 times`**, then a synthesiz
 ---
 <br><br>
 
-## 11: Where to Take It
-Everything beyond this is more of the same pattern. (Reading only)
+## 9: Get a GitHub Token
+Your server needed no credentials — it's a local process you already trust. **Remote** servers are someone else's service over HTTPS, so they need authentication. GitHub publishes one, and everything else in this lab applies to it unchanged.
 
-- **More tools:** anything a Python function can do becomes a tool with one decorator and a good docstring.
-- **Arguments:** typed parameters (`def run_tests(pattern: str) -> str:`) — FastMCP builds the schema.
-- **Beyond stdio:** the same code can serve HTTP (`claude mcp add --transport http <url>`).
-- **Distribution:** `.mcp.json` in the repo (done!), or package it with a plugin.
+**Action:** While logged into GitHub, click the link below, enter a note, and click the green **Generate token** button at the bottom. The scopes are pre-selected for you.
+
+Link: [Generate classic personal access token (repo & workflow scopes)](https://github.com/settings/tokens/new?scopes=repo,workflow)
+
+![Creating token](./images/ccadv29.png?raw=true "Creating token")
+![Creating token](./images/ccadv30.png?raw=true "Creating token")
+
+On the next screen, **copy the generated token and save it** — you will not be able to see it again.
+
+![Copying token](./images/ccadv31.png?raw=true "Copying token")
+
+---
+<br><br>
+
+## 10: Register the Remote Server — Without Committing Your Token
+Claude Code expands `${VAR}` in `.mcp.json` **when a session starts**, so the file can name a secret it never contains.
+
+**Action:** Leave Claude with `/exit`. Then, in the terminal, export your token and register the server — note the **single** quotes:
+```bash
+export GITHUB_TOKEN=<paste-your-token>
+claude mcp add --scope project --transport http \
+  --header 'Authorization: Bearer ${GITHUB_TOKEN}' \
+  github https://api.githubcopilot.com/mcp/readonly
+```
+
+Now look at what got written:
+```bash
+cat .mcp.json
+```
+
+You should see the literal text `${GITHUB_TOKEN}` — **not** your token. Double quotes would have let the shell expand it and baked your credentials into a file you're about to commit; single quotes left the placeholder for Claude Code to resolve at startup. Two characters decide whether this file is safe to share.
+
+> Windows PowerShell: `$env:GITHUB_TOKEN = "<paste-your-token>"`. Whatever the shell, export the token **before** launching Claude — the expansion happens at session start, so a token exported in a different terminal won't be found.
+
+---
+<br><br>
+
+## 11: Inspect the Remote Server
+**Action:** Start Claude, approve the new server when prompted — the same gate you saw in step 5, now protecting you from someone else's service — then type:
+```bash
+claude
+```
+```
+/mcp
+```
+
+Select **github** and browse. Two things to notice: it connects over HTTP rather than a local process, and where your server offered three tools, this one offers dozens. Every one of those tool definitions costs context in every session — which is why the URL above ends in `/readonly`, and why you remove servers you aren't using.
+
+![github mcp panel](./images/ccadv32.png?raw=true "github mcp panel")
+
+> Ask it something real — *"Use the github tools to summarize the open issues on this repo"* — and watch `mcp__github__...` names go by in the transcript, exactly like your own server's did.
 
 ---
 <br><br>
@@ -1096,18 +1073,20 @@ Everything beyond this is more of the same pattern. (Reading only)
 **Action:** Type `exit` to leave Claude. To remove the server registration afterwards:
 ```bash
 claude mcp remove project-health
+claude mcp remove github --scope project
 ```
 
 (Leaving it is fine too — it's your repo's feature now.)
 
 ## Lab Summary
 ✅ In the capstone you've:
-- Completed a FastMCP server: three `@mcp.tool()` functions whose docstrings are the tool documentation
+- Completed an MCP server: three `@mcp.tool()` functions whose docstrings are the tool documentation
 - Learned the stdio contract (silence = waiting for a client)
 - Registered it at project scope and read the shareable `.mcp.json`
 - Approved and inspected it with `/mcp`
 - Driven it from natural language, single- and multi-tool
-- Connected the picture: commands → hooks → loops (`/goal`, `/loop`) → headless/CI → SDK → your own MCP server
+- Connected GitHub's **remote** server with header auth, keeping the token out of the committed `.mcp.json`
+- Connected the picture: commands → hooks → loops (`/goal`, `/loop`) → headless → SDK → your own MCP server
 
 <br><br>
 ---

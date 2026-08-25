@@ -34,6 +34,7 @@
           "**/.claude/commands/*.md": "default",
           "**/.claude/agents/*.md": "default",
           "**/.claude/skills/**/*.md": "default",
+          "**/.claude/*.md": "default",
           "*.md": "vscode.markdown.preview.editor"
         }
       }
