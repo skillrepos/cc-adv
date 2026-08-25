@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and your own MCP server
 ## Session Labs
-## Revision 1.33 - 08/25/26
+## Revision 1.36 - 08/25/26
 
 <br><br>
 
@@ -548,12 +548,18 @@ Setting the goal **starts a turn immediately** — watch for `◎ /goal active` 
 ---
 <br><br>
 
-## 3: Watch the Evaluator's Verdicts
-Three verdicts: **not yet met** (the reason feeds back as guidance), **met**, or **impossible**.
+## 3: Read the Verdict
+Claude usually fixes all four routes in one turn, so expect a single result card:
 
-**Action:** Press *Ctrl+O* to expand the detailed transcript and read the **Reason:** line under the verdict.
+```
+✔ Goal achieved (18s · 1 turn · 1.3k tokens)
+  Goal: python3 app/test_app.py reports 14 passed, 0 failed and exits 0. …
+  Reason: The transcript shows the output: "14 passed, 0 failed" …
+```
 
-> Claude usually fixes all four routes in one turn, so expect a single `✓ Goal achieved (… · 1 turn · …)`. And note the condition names a *command whose output lands in the transcript* — the evaluator has **no tools**, so "the code is clean" would be unjudgeable.
+**Action:** Read the **Reason:** line. That is the evaluator — a separate Haiku call — saying *why* it accepted, and it is the whole mechanism: the evaluator has **no tools**, so it can only judge what Claude already put in the transcript. That is why the condition names a *command whose output lands there*; "the code is clean" would be unjudgeable.
+
+> **Why you only see one verdict.** The evaluator returns one of three: **not yet met** — the reason feeds back as guidance and Claude takes another turn; **met** — what you just saw, printed as `Goal achieved`; **impossible** — the condition can never hold, so the goal clears and the run is recorded as failed. A one-turn success skips straight to the second, which is why there is no loop to watch here.
 
 ![goal verdicts](./images/ccadv20.png?raw=true "goal verdicts")
 
@@ -649,8 +655,8 @@ Claude uses `CronList` and `CronDelete` under the hood.
 ---
 <br><br>
 
-## 9: The Same Loop With No Session at All
-So far every loop needed you sitting in an interactive session. `claude -p` runs **headless**: it starts a session, runs a `/goal` loop to completion, prints the result, and exits — the whole loop packed into one ordinary shell command. And anything that can run a shell command — a script, a cron job, a build pipeline — can now run the loop for you.
+## 9: Run the Goal Loop From a Plain Shell
+Steps 6-8 were the **outer** loop — `/loop` re-running a prompt on a timer *inside* your session. This step goes back to the **inner** loop from steps 2-4, `/goal`, and runs it with no interactive session at all. `claude -p` is headless: it starts a session, works the goal to completion, prints the result, and exits. Anything that can run a shell command — a script, a cron job, a build pipeline — can now run that loop for you.
 
 **Action:** Exit Claude (*Ctrl+D*) and run in the terminal:
 ```bash
@@ -660,6 +666,8 @@ claude -p "/goal beat.md exists and its last line names the current test pass/fa
 ```
 
 The `--output-format json` wrapper makes every run scriptable and auditable — a machine can read what happened and what it cost. Expect roughly **3 turns and a few cents**.
+
+> **Why 3 turns, when `beat.md` already exists?** This is a *fresh* session with an empty transcript, and the evaluator has no tools — it judges only what **this** run surfaced. So Claude has to read `beat.md` and run the suite to establish what the counts currently are before the condition can be judged at all. **A goal already true in the world still costs turns to prove.** Same no-tools constraint as step 3.
 
 ![headless goal](./images/ccadv24.png?raw=true "headless goal")
 
@@ -1036,8 +1044,8 @@ Claude Code expands `${VAR}` in `.mcp.json` **when a session starts**, so the fi
 ```bash
 export GITHUB_TOKEN=<paste-your-token>
 claude mcp add --scope project --transport http \
-  --header 'Authorization: Bearer ${GITHUB_TOKEN}' \
-  github https://api.githubcopilot.com/mcp/readonly
+  github https://api.githubcopilot.com/mcp/readonly \
+  --header 'Authorization: Bearer ${GITHUB_TOKEN}'
 ```
 
 Now look at what got written:
@@ -1046,6 +1054,8 @@ cat .mcp.json
 ```
 
 You should see the literal text `${GITHUB_TOKEN}` — **not** your token. Double quotes would have let the shell expand it and baked your credentials into a file you're about to commit; single quotes left the placeholder for Claude Code to resolve at startup. Two characters decide whether this file is safe to share.
+
+> **Order matters here.** The name and URL must come *before* `--header`; `--header` is repeatable, so if it appears first it swallows `github` and the URL as extra header values and the CLI reports `error: missing required argument 'name'`.
 
 > Windows PowerShell: `$env:GITHUB_TOKEN = "<paste-your-token>"`. Whatever the shell, export the token **before** launching Claude — the expansion happens at session start, so a token exported in a different terminal won't be found.
 
