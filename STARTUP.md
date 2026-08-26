@@ -2,11 +2,16 @@
 **What we're doing:** Launching Claude Code in interactive mode.  
 **Why:** This is the primary way you'll interact with Claude for coding tasks.
 
-**Action:** Open a **new** terminal — click the **+** at the top right of the terminal panel, or use *Terminal → New Terminal*. Then type:
+**Action:** Open a **new** terminal — click the **+** at the top right of the terminal panel, or use *Terminal → New Terminal*.
+
+
+![new terminal](./images/ccode274.png?raw=true "New terminal")
+
+Then type:
+
 ```bash
 claude
 ```
-![new terminal](./images/ccode274.png?raw=true "New terminal")
 
 > **Why a new terminal?** VS Code gives a terminal its environment only at the moment that terminal is created, and the terminal the codespace opens for you may be created *before* the Claude Code extension finishes starting up. A terminal opened after that point reliably picks up what Claude Code needs to show its side-by-side diff view inside the editor. If you forget, the labs still work.
 
