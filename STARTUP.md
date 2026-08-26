@@ -127,6 +127,8 @@ Claude Code normally starts in **auto mode** on Pro, Max and Team plans. The exc
 **first** session after a fresh install — and a brand-new Codespace counts as one — which starts in
 **manual**. Later sessions pick up auto on their own, so this is usually a one-time step.
 
+![mode selection](./images/ccode276.png?raw=true "mode selection")
+
 <br><br>
 
 ### You're now ready for the labs!
