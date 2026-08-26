@@ -77,6 +77,11 @@ From the repo page at https://github.com/skillrepos/cc-adv, click the green **Co
 
 Click here ------> [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/skillrepos/cc-adv?quickstart=1)
 
+When prompted about trusting the folder, select `Trust Folder & Continue`.
+
+![Trust folder](./images/ccode273.png?raw=true "Trust folder")
+
+
 <br><br>
 
 ## 8. Start Claude Code and authenticate
