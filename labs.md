@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.43 - 08/25/26
+## Revision 1.44 - 08/25/26
 
 <br><br>
 
@@ -164,7 +164,7 @@ It works: skill directories are **watched and hot-reloaded** mid-session. Comman
 <br><br>
 
 ## 6: Next Level: Fork the Skill — Same Context, Separate Worker
-`context: fork` runs the skill in a **forked subagent**: it inherits your full conversation, but its work stays out of your main context.
+`context: fork` runs the skill in its own subagent. The skill body becomes the subagent's prompt, it does not see your conversation, and only its result comes back — so the noisy work never lands in your main context. (If you need the conversation carried over, that's the manual /fork command, not a skill setting.).
 
 **Action:** Edit `.claude/skills/triage/SKILL.md`, add two lines to the frontmatter (see screenshot), and save:
 ```md
