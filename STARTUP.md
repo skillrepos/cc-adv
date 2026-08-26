@@ -6,6 +6,7 @@
 ```bash
 claude
 ```
+![new terminal](./images/ccode274.png?raw=true "New terminal")
 
 > **Why a new terminal?** VS Code gives a terminal its environment only at the moment that terminal is created, and the terminal the codespace opens for you may be created *before* the Claude Code extension finishes starting up. A terminal opened after that point reliably picks up what Claude Code needs to show its side-by-side diff view inside the editor. If you forget, the labs still work.
 
