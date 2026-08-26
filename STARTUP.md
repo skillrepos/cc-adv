@@ -107,7 +107,9 @@ In the list that comes up, if the default doesn't already have Sonnet selected, 
 Separately, use the left/right arrow keys to change the effort to *Medium effort*. (The exact model versions listed may differ from the screenshot — pick the current Sonnet model.)
 
 ![model selection](./images/ccode275.png?raw=true "model selection")
+
 ![model selection](./images/ccode243.png?raw=true "model selection")
+
 You should see an indicator that the model was set to a *Sonnet* model with *medium* effort.
 
 <br><br>
