@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.46 - 08/30/26
+## Revision 1.47 - 08/30/26
 
 <br><br>
 
@@ -515,10 +515,12 @@ Use `/goal` to keep a session working until a condition holds (the **inner loop*
 git switch -c loop-lab
 ```
 
-Then start Claude in that same directory:
+Then start Claude in that same directory — **with `--verbose`**:
 ```bash
-claude
+claude --verbose
 ```
+
+Verbose mode is what makes the next two steps work: the goal evaluator's verdict line is only rendered when verbose is on. (Same thing as the *Show full tool output* setting in `/config`.)
 
 ---
 <br><br>
@@ -549,7 +551,7 @@ Claude usually fixes all four routes in one turn, so expect a single result card
   Reason: The transcript shows the output: "14 passed, 0 failed" …
 ```
 
-**Action:** Read the **Reason:** line. That is the evaluator — a separate call — saying *why* it accepted, and it is the whole mechanism: the evaluator has **no tools**, so it can only judge what Claude already put in the transcript. That is why the condition names a *command whose output lands there*; "the code is clean" would be unjudgeable.
+**Action:** Read the **Reason:** line — it appears because you started with `--verbose`; without it the card is just the one `✔` line. That is the evaluator — a separate call — saying *why* it accepted, and it is the whole mechanism: the evaluator has **no tools**, so it can only judge what Claude already put in the transcript. That is why the condition names a *command whose output lands there*; "the code is clean" would be unjudgeable.
 
 
 ![goal verdicts](./images/ccadv20.png?raw=true "goal verdicts")
