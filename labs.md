@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.48 - 08/30/26
+## Revision 1.49 - 08/30/26
 
 <br><br>
 
@@ -565,7 +565,7 @@ Claude usually fixes all four routes in one turn, so expect a single result card
 /goal
 ```
 
-You get the verdict, condition, runtime, turns and token spend. (More info can be seen with the `Ctrl+O` toggle.)
+You get the verdict, condition, runtime, turns and token spend. (More info can be seen with the `Ctrl+O` toggle.) You can use `Esc` to return to the main screen.
 
 ![goal status](./images/ccadv21.png?raw=true "goal status")
 
@@ -580,13 +580,20 @@ python3 app/test_app.py
 git diff --stat
 ```
 
-You should see `14 passed, 0 failed`, and a diff touching `app/app.py` only — **not** `app/test_app.py`. Now commit it to the throwaway branch and go back:
+You should see `14 passed, 0 failed`, and a diff touching `app/app.py` only — **not** `app/test_app.py`. 
+
+![goal status](./images/ccadv32.png?raw=true "goal status")
+
+
+Now go back to the main branch:
 ```bash
 git add -A && git commit -m "goal: fix 400/404 contract violations"
 git switch -
 ```
 
 `python3 app/test_app.py` should report `10 passed, 4 failed` again — Lab 5 needs those failures. The fix stays on `loop-lab`.
+
+![goal status](./images/ccadv33.png?raw=true "goal status")
 
 ---
 <br><br>
