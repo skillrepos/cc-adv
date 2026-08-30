@@ -596,19 +596,19 @@ The `/goal` from steps 2-4 was the **inner loop**: one session working turn afte
 
 **Action:** Back in the Claude session, type:
 ```
-/loop 2m append the current UTC time and the current test pass/fail counts as one line in beat.md
+/loop 1m append the current UTC time and the current test pass/fail counts as one line in beat.md
 ```
 
 Claude converts the interval to a cron expression and calls the `CronCreate` tool:
 
 ```
-● CronCreate(*/2 * * * * : append the current UTC time…)
-  ⎿  Scheduled 8db547d2 (Every 2 minutes)
+● CronCreate(*/1 * * * * : append the current UTC time…)
+  ⎿  Scheduled 8db547d2 (Every minute)
 ```
 
 ![loop scheduled](./images/ccadv22.png?raw=true "loop scheduled")
 
-> Leave it running and move on. Intervals take `s`/`m`/`h`/`d` units; cron underneath means nothing fires more than once a minute. Fire times are also deliberately staggered (so everyone's tasks don't hit at the same instant) by up to half the interval — so expect lines ~2 minutes apart but *not on* the 2-minute marks, and allow up to ~3 minutes for the first one. It isn't broken, it's pacing.
+> Leave it running and move on — by the time you reach step 9 it should have written several lines. Intervals take `s`/`m`/`h`/`d` units, and cron underneath means **once a minute is the floor**. Fire times are also deliberately staggered (so everyone's tasks don't hit at the same instant) by up to half the interval — so expect lines roughly a minute apart but *not on* the minute marks. It isn't broken, it's pacing.
 
 ---
 <br><br>
@@ -624,33 +624,48 @@ names and the contract each one violates - do not fix them.
 If everything passes, say so in one line.
 ```
 
-From now on, bare `/loop` in this project runs *your* prompt. Project scope (`.claude/loop.md`) wins over user scope (`~/.claude/loop.md`), and edits take effect on the loop's next pass.
+From now on, bare `/loop` in this project runs *your* prompt. Project scope (`.claude/loop.md`) wins over user scope (`~/.claude/loop.md`), and edits take effect on the loop's next pass. The next step runs it.
 
 ---
 <br><br>
 
-## 8: Inspect and Cancel the Loop
+## 8: Run Your Default Prompt with Bare `/loop`
+Step 7 wrote the prompt. Bare `/loop` — no interval, no prompt at all — is what runs it.
+
+**Action:** At the Claude prompt, type:
+```
+/loop
+```
+
+Claude picks up `.claude/loop.md` and works that prompt instead of the built-in maintenance one. You switched off `loop-lab` back in step 5, so the four failures are here again — expect the pass to **name the failing tests and the contract each violates, and leave them alone**, because that is what your prompt told it to do.
+
+> **Two pacing models, one command.** Step 6's `/loop 1m` is a fixed cron — same interval, every time. Bare `/loop` has no interval to obey, so **Claude schedules its own next wake**, anywhere from a minute to an hour, based on what the pass just found. That is the right shape for standing housekeeping and the wrong shape for a lab clock — which is why the next step cancels both rather than waiting on this one.
+
+---
+<br><br>
+
+## 9: Inspect and Cancel the Loops
 "Loop" is the command's name — but what `CronCreate` stored in step 6 is called a **scheduled task**, and that's the term to use when asking Claude about it. Scheduled tasks are **session-scoped**: they die with the conversation, restore on `claude --resume`, and expire after 7 days.
 
-**Action:** Check that the loop has fired at least once:
+**Action:** Check what the 1-minute loop has been writing:
 ```
 ! cat beat.md
 ```
 
-Then ask for the task list and cancel it in plain English:
+You should have several timestamped lines by now, roughly a minute apart. Then ask for the task list and clear it in plain English:
 ```
-what scheduled tasks do I have? cancel the beat.md one
+what scheduled tasks do I have? cancel all of them
 ```
 
-Claude uses `CronList` and `CronDelete` under the hood.
+Claude uses `CronList` and `CronDelete` under the hood. Both tasks — the 1-minute `beat.md` cron from step 6 and the self-paced one from step 8 — should be listed and removed.
 
 ![loop cancelled](./images/ccadv23.png?raw=true "loop cancelled")
 
 ---
 <br><br>
 
-## 9: (OPTIONAL) Run the Goal Loop From a Plain Shell
-Steps 6-8 were the **outer** loop — `/loop` re-running a prompt on a timer *inside* your session. This step goes back to the **inner** loop, `/goal`, and runs it with no session at all. `claude -p` is headless: it starts a session, works the goal to completion, prints one JSON result, and exits. Anything that can run a shell command — a script, a cron job, a build pipeline — can now run that loop.
+## 10: (OPTIONAL) Run the Goal Loop From a Plain Shell
+Steps 6-9 were the **outer** loop — `/loop` re-running a prompt on a timer *inside* your session. This step goes back to the **inner** loop, `/goal`, and runs it with no session at all. `claude -p` is headless: it starts a session, works the goal to completion, prints one JSON result, and exits. Anything that can run a shell command — a script, a cron job, a build pipeline — can now run that loop.
 
 **Action:** Exit Claude (*Ctrl+D*) and run in the terminal:
 ```bash
@@ -675,7 +690,7 @@ The counts should match the suite on this branch. `health.md` is throwaway — d
 ---
 <br><br>
 
-## 10: Know the Bounds
+## 11: Know the Bounds
 Every loop needs a stop condition, and every unattended loop needs a budget. (Reading only)
 
 - **Bound the goal** — a condition can carry its own limit: `…or stop after 20 turns`.
@@ -687,7 +702,7 @@ Every loop needs a stop condition, and every unattended loop needs a budget. (Re
 - `/goal` — an inner loop that works until a condition holds, judged by a separate evaluator model
 - Reading the evaluator's verdicts, and writing a condition it can actually judge
 - `/loop` — an outer loop on an interval, backed by `CronCreate` / `CronList` / `CronDelete`
-- `loop.md` — replacing the built-in maintenance prompt with your own
+- `loop.md` + bare `/loop` — replacing the built-in maintenance prompt with your own, and running it
 - Running the same goal headless with `claude -p` and `--output-format json`
 - Bounding a loop: stop clauses and `--max-turns`
 
