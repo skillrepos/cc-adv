@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.50 - 08/30/26
+## Revision 1.51 - 08/30/26
 
 <br><br>
 
@@ -644,6 +644,8 @@ Step 7 wrote the prompt. Bare `/loop` — no interval, no prompt at all — is w
 /loop
 ```
 
+![loop scheduled](./images/ccadv35.png?raw=true "loop scheduled")
+
 Claude picks up `.claude/loop.md` and works that prompt instead of the built-in maintenance one. You switched off `loop-lab` back in step 5, so the four failures are here again — expect the pass to **name the failing tests and the contract each violates, and leave them alone**, because that is what your prompt told it to do.
 
 > **Two pacing models, one command.** Step 6's `/loop 1m` is a fixed cron — same interval, every time. Bare `/loop` has no interval to obey, so **Claude schedules its own next wake**, anywhere from a minute to an hour, based on what the pass just found. That is the right shape for standing housekeeping and the wrong shape for a lab clock — which is why the next step cancels both rather than waiting on this one.
@@ -666,7 +668,7 @@ what scheduled tasks do I have? cancel all of them
 
 Claude uses `CronList` and `CronDelete` under the hood. Both tasks — the 1-minute `beat.md` cron from step 6 and the self-paced one from step 8 — should be listed and removed.
 
-![loop cancelled](./images/ccadv23.png?raw=true "loop cancelled")
+![loops cancelled](./images/ccadv36.png?raw=true "loops cancelled")
 
 ---
 <br><br>
@@ -674,13 +676,13 @@ Claude uses `CronList` and `CronDelete` under the hood. Both tasks — the 1-min
 ## 10: (OPTIONAL) Run the Goal Loop From a Plain Shell
 Steps 6-9 were the **outer** loop — `/loop` re-running a prompt on a timer *inside* your session. This step goes back to the **inner** loop, `/goal`, and runs it with no session at all. `claude -p` is headless: it starts a session, works the goal to completion, prints one JSON result, and exits. Anything that can run a shell command — a script, a cron job, a build pipeline — can now run that loop.
 
-**Action:** Exit Claude (*Ctrl+D*) and run in the terminal:
+**Action:** Exit Claude (/exit) and run in the terminal:
 ```bash
 claude -p "/goal health.md exists and names the pass and fail counts from running python3 app/test_app.py" \
   --permission-mode acceptEdits --allowedTools "Bash(python3:*)" \
   --output-format json | jq '{result, num_turns, total_cost_usd}'
 ```
-![headless goal](./images/ccadv28.png?raw=true "headless goal")
+![headless goal](./images/ccadv37.png?raw=true "headless goal")
 
 **Action:** After it completes, check what it produced:
 ```bash
