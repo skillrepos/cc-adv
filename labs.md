@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.44 - 08/25/26
+## Revision 1.45 - 08/30/26
 
 <br><br>
 
@@ -48,15 +48,16 @@ See how we can delegate work at different levels: a parameterized command, a hot
 ---
 <br><br>
 
-## 1: Start Claude and Initialize
+## 1: IF NOT ALREADY STARTED, start Claude. Then Initialize
 This repo holds a Flask to-do API in `app/` (its tests fail in 4 places *by design*), plus SDK and MCP skeletons for later labs.
 Let's get Claude to learn about the repo.
 
-**Action:** In the terminal, start Claude, then initialize the project:
+**Action:** In the terminal, if Claude is not already running, start Claude.
 ```bash
 claude
 ```
-Type in Claude:
+
+Then initialize the project: Type in Claude:
 
 ```
 /init
