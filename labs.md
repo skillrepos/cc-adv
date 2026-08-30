@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.45 - 08/30/26
+## Revision 1.46 - 08/30/26
 
 <br><br>
 
@@ -164,10 +164,10 @@ It works: skill directories are **watched and hot-reloaded** mid-session. Comman
 ---
 <br><br>
 
-## 6: Next Level: Fork the Skill — Same Context, Separate Worker
-`context: fork` runs the skill in its own subagent. The skill body becomes the subagent's prompt, it does not see your conversation, and only its result comes back — so the noisy work never lands in your main context. (If you need the conversation carried over, that's the manual /fork command, not a skill setting.).
+## 6: Next Level: Fork the Skill — Its Own Context, Separate Worker
+`context: fork` runs the skill in its own subagent. The skill body becomes the subagent's prompt, it does not see your conversation, and only its result comes back — so the noisy work never lands in your main context. (If you need the conversation carried over, that's the manual /fork command, not a skill setting.)
 
-**Action:** Edit `.claude/skills/triage/SKILL.md`, add two lines to the frontmatter (see screenshot), and save:
+**Action:** Edit **`.claude/skills/triage/SKILL.md`** — the file you moved in step 5, *not* the old `.claude/commands/triage.md` — add two lines to the frontmatter (see screenshot), and save:
 ```md
 name: triage
 context: fork
@@ -180,7 +180,11 @@ context: fork
 /triage app/auth.py
 ```
 
-The triage runs as a delegated task; only the report returns. (The transcript's *"Running in the background as @triage"* means *delegated* — the result still lands here.)
+When the fork takes effect you see it delegate: `Running in the background as @triage`, then `Agent "/triage app/auth.py" finished`, then the summary. *"Background"* here means **delegated** — the result still lands in this conversation.
+
+**The deeper tell is what's *missing*:** a forked skill has no memory of this session, so it will not say things like *"this is the same file I just triaged."*
+
+> **If you see neither** — no delegation line, and it recalls an earlier turn — then `context: fork` did not take effect, and the usual cause is that the line landed in the wrong file. Check that `.claude/commands/triage.md` is really gone (step 5 moved it) and that `context: fork` is in `.claude/skills/triage/SKILL.md`.
 
 ![Forked triage](./images/ccadv16.png?raw=true "Forked triage")
 
@@ -281,7 +285,7 @@ Before writing anything, `--bg` gave the worker **its own worktree checkout** on
 - One-pass setup: CLAUDE.md + your own rule
 - Built `/triage` with `$ARGUMENTS`, inline bash context, `@file` references and scoped `allowed-tools`
 - Converted it to a **skill** — hot-reloaded without a restart
-- Forked it with `context: fork` — full conversation, separate workspace
+- Forked it with `context: fork` — its own context, separate workspace
 - Delegated verbose test output to a `model: haiku` subagent
 - Detached a worker with `claude --bg`, pre-approved with mode **and** `--allowedTools`
 - Found its output in its own **git worktree** — isolation you can see
