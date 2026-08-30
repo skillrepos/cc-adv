@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.47 - 08/30/26
+## Revision 1.48 - 08/30/26
 
 <br><br>
 
@@ -309,7 +309,7 @@ Create a PreToolUse hook that blocks edits to a protected file and a PostToolUse
 
 The policy we'll enforce is that nobody is allowed to edit `config.json` via Claude. (The file is just a stand-in for the credential/config files every real project has.)
 
-**Action:** In a regular terminal (not Claude), create the file and the hooks folder:
+**Action:** In a terminal (Claude should not be running), create the file and the hooks folder:
 ```
 echo '{ "database": { "host": "localhost", "port": 5432 } }' > config.json
 mkdir -p .claude/hooks
@@ -404,7 +404,7 @@ claude --dangerously-skip-permissions
 
   or
 
-claude-yolo (if running in the codespace)
+claude-yolo (if running in the codespace. Note you may need to open a new terminal if this doesn't work)
 ```
 
 > Pay attention on the warning screen — choose **2. Yes, I accept**. The status line now reads *bypass permissions on*.
@@ -430,7 +430,7 @@ Select **PreToolUse** to see the exit-code legend and your matcher (`[Project] E
 <br><br>
 
 ## 7: Try to Edit the Protected File
-**Action:** Type:
+**Action:** In Claude, type:
 ```
 Add a connection_timeout setting to config.json using the Edit tool.
 ```
