@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.49 - 08/30/26
+## Revision 1.50 - 08/30/26
 
 <br><br>
 
@@ -613,7 +613,7 @@ Claude converts the interval to a cron expression and calls the `CronCreate` too
   ⎿  Scheduled 8db547d2 (Every minute)
 ```
 
-![loop scheduled](./images/ccadv22.png?raw=true "loop scheduled")
+![loop scheduled](./images/ccadv34.png?raw=true "loop scheduled")
 
 > Leave it running and move on — by the time you reach step 9 it should have written several lines. Intervals take `s`/`m`/`h`/`d` units, and cron underneath means **once a minute is the floor**. Fire times are also deliberately staggered (so everyone's tasks don't hit at the same instant) by up to half the interval — so expect lines roughly a minute apart but *not on* the minute marks. It isn't broken, it's pacing.
 
