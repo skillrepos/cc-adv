@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.58 - 08/31/26
+## Revision 1.59 - 08/31/26
 
 <br><br>
 
@@ -667,6 +667,8 @@ what scheduled tasks do I have? cancel all of them
 ```
 
 Claude uses `CronList` and `CronDelete` under the hood. Both tasks — the 1-minute `beat.md` cron from step 6 and the self-paced one from step 8 — should be listed and removed.
+
+> **Reading the list.** The two entries look nothing alike. Step 6's is `Every minute (recurring)`. Step 8's reads something like `Every day at 4:16 PM (one-shot) … <<loop.md-dynamic>>` — that is **not** a daily job. A self-paced loop schedules a **one-shot** wakeup for the single moment Claude picked, and the list simply describes that time in English; `(one-shot)` means it fires once and disarms. `<<loop.md-dynamic>>` is a placeholder the runtime swaps for your `loop.md` when it fires. Because each pass has to arm the next one, Claude also **stops the loop itself** — deleting the pending wakeup alone would leave it free to schedule another.
 
 ![loops cancelled](./images/ccadv36.png?raw=true "loops cancelled")
 
