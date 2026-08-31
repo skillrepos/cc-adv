@@ -41,15 +41,22 @@ say "repo: $ROOT"
 # ---------------------------------------------------------------- 1. no live agent
 # A finished /goal leaves "treat the condition as your directive" in the session's
 # context. Restore files while that session is open and it will put its fix back.
+# 'bg-spare' processes are the background daemon's idle helpers - they respawn
+# on their own and hold no session, so ignore them (killing one is pointless).
 CLAUDE_RE='(^|[/[:space:]])claude([[:space:]]|$)|claude-code/cli\.js'
-LIVE=$(pgrep -af "$CLAUDE_RE" 2>/dev/null | grep -v 'reset-lab3' | grep -v 'grep' || true)
+LIVE=$(pgrep -af "$CLAUDE_RE" 2>/dev/null \
+        | grep -v 'reset-lab3' | grep -v 'grep' | grep -v 'bg-spare' || true)
 if [ -n "$LIVE" ] && [ "$FORCE" = 0 ]; then
   say ""
   say "REFUSING: a Claude process still looks alive:"
   say "$LIVE" | sed 's/^/  /'
   say ""
-  say "Exit it (/exit) first - a session that ran /goal will undo this reset."
-  say "Then re-run, or pass --force if you know those processes are unrelated."
+  say "A session that ran /goal will undo this reset. Close it first:"
+  say "  interactive session  ->  /exit in that terminal"
+  say "  background session   ->  claude agents   (find the id)"
+  say "                           claude stop <id>  then  claude rm <id>"
+  say ""
+  say "Then re-run. Use --force only if you are sure those processes are unrelated."
   exit 1
 fi
 
@@ -83,9 +90,16 @@ fi
 # ---------------------------------------------------------------- 5. keep Lab 1 + 2 work
 say ""
 say "Labs 1-2 material (should all be present):"
-for f in CLAUDE.md config.json .claude/settings.json .claude/hooks/protect-config.sh; do
-  if [ -e "$f" ]; then say "  ok      $f"; else say "  MISSING $f"; fi
+for f in CLAUDE.md .claude/settings.json .claude/hooks/protect-config.sh; do
+  if [ -e "$f" ]; then say "  ok      $f"; else say "  MISSING $f  (created in Lab 1/2 - recreate it there)"; fi
 done
+# Lab 2's protected file is a one-liner, so just put it back if it went missing.
+if [ -e config.json ]; then
+  say "  ok      config.json"
+else
+  say "  recreating config.json (Lab 2's protected file)"
+  run "printf '%s\n' '{ \"database\": { \"host\": \"localhost\", \"port\": 5432 } }' > config.json"
+fi
 ls -d .claude/commands .claude/skills .claude/agents 2>/dev/null | sed 's/^/  ok      /'
 
 # ---------------------------------------------------------------- 6. prove it
