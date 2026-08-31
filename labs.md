@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.51 - 08/30/26
+## Revision 1.52 - 08/30/26
 
 <br><br>
 
@@ -722,13 +722,13 @@ Every loop needs a stop condition, and every unattended loop needs a budget. (Re
 <br><br>
 # Lab 4: Agent SDK: Programmatic and Unattended Loops
 ## Lab Purpose
-Run the **same Claude agent from a small Python program** — first read-only, then *unattended*, doing real work safely with nobody watching. 
+Run the **same Claude agent from a small Python program** First, we'll do it read-only, then *unattended*, doing work safely with nobody watching. 
 
 > **Framing: the **Agent SDK** is like running `claude` but as a Python library. 
 
-> **"Unattended" means one thing: no permission prompt is possible.** Nobody is there to click "Yes," so every permission question has to be answered *before* it is asked. Lab 3 answered them with flags. Steps 4-5 answer them with a list in code. From step 6 on you answer them with **code that runs on every call** — the only option that can judge the *arguments*, not just the tool name.
+> **"Unattended" means one thing: no permission prompt is possible.** Nobody is there to click "Yes," so every permission question has to be answered *before* it is asked. Lab 3 answered them with flags. Steps 4-5 respond with a list in code. From step 6 on you answer them with **code that runs on every call**. This option can judge the *arguments*, not just the tool name.
 
-> We'll assemble some code using **diff-merge steps:** `code -d extra/<finished> sdk/<skeleton>` opens the finished file (**left**) beside your skeleton (**right**). Copy each highlighted block left → right (gutter arrow toward the right, or copy/paste) until nothing is highlighted, then **save the right file** (Cmd/Ctrl+S). A skeleton run before merging prints *"still the skeleton"* and stops — re-open the diff, merge what remains, save.
+> We'll assemble some code using **diff-merge steps:** `code -d extra/<finished> sdk/<skeleton>` opens the finished file (**left**) beside your skeleton (**right**). Copy each highlighted block left → right (gutter arrow toward the right, or copy/paste) until nothing is highlighted, then **save the right file** (Cmd/Ctrl+S). 
 
 ---
 <br><br>
@@ -750,7 +750,7 @@ python -m pip install claude-agent-sdk
 code sdk/agent_loop.py
 ```
 
-The imports name the pieces you'll use — `query`, `ClaudeAgentOptions`, `AssistantMessage`, `ResultMessage`. The body of `run_agent()` is a placeholder; you'll merge in the **options** (pre-approved tools plus a turn cap) and the **message loop**.
+The imports name the pieces you'll use: `query`, `ClaudeAgentOptions`, `AssistantMessage`, `ResultMessage`. The body of `run_agent()` is a placeholder; you'll merge in the **options** (pre-approved tools plus a turn cap) and the **message loop**.
 
 ![skeleton view](./images/cc-se58.png?raw=true "skeleton view")
 
@@ -906,17 +906,17 @@ You've *used* MCP servers; now **build one**. Complete a Python MCP server expos
 <br><br>
 
 ## 1: Complete the Server — Diff-Merge the Three Tools
-The MCP SDK makes a server out of ordinary Python functions: decorate one with `@mcp.tool()` and its **docstring and type hints become the tool's documentation and input schema** — what Claude reads when choosing a tool. We'll be assembling one for project health.
+The MCP SDK makes a server out of ordinary Python functions: decorate one with `@mcp.tool()` and its **docstring and type hints become the tool's documentation and input schema**. This is what Claude reads when choosing a tool. We'll be assembling one for project health.
 
 
-Already in place in the skeleton: the `MCPServer("project-health")` instance (that name becomes the `mcp__project-health__...` prefix) and the `mcp.run()` call that starts the stdio transport. Missing are the three tools — `run_tests()` (runs `app/test_app.py`), `count_todos()` (TODO/FIXME counts per file), and `project_stats()` (file and line counts). That's your merge.
+Already in place in the skeleton: the `MCPServer("project-health")` instance (that name becomes the `mcp__project-health__...` prefix) and the `mcp.run()` call that starts the stdio transport. Missing are the three tools: `run_tests()` (runs `app/test_app.py`), `count_todos()` (TODO/FIXME counts per file), and `project_stats()` (file and line counts). That's your merge.
 
 **Action:** Run the diff, merge the **one highlighted region** left → right, save the right file, and close the tab:
 ```bash
 code -d extra/project_server.txt mcpserver/project_server.py
 ```
 
-As you merge, read the docstrings — each tells Claude *when* to reach for that tool.
+As you merge, read the docstrings. Each one tells Claude *when* to reach for that tool.
 
 ![diff merge server](./images/ccadv4.png?raw=true "diff merge server")
 
@@ -924,27 +924,27 @@ As you merge, read the docstrings — each tells Claude *when* to reach for that
 <br><br>
 
 ## 2: Start It Once by Hand
-"Success" for a stdio server is **silence** — it's waiting for a client to speak JSON-RPC on stdin.
+"Success" for a stdio server is **silence**. it's waiting for a client to speak JSON-RPC on stdin.
 
 **Action:** Run:
 ```bash
 python3 mcpserver/project_server.py
 ```
 
-Nothing appears — correct. (The skeleton message means the merge didn't save.) Stop it with `Ctrl+C` — the long `KeyboardInterrupt` traceback is expected, not a failure. From now on Claude Code starts and stops this process for you.
+Nothing appears — correct. (The skeleton message means the merge didn't save.) Stop it with `Ctrl+C`. The subsequent long `KeyboardInterrupt` traceback is expected, not a failure. From now on Claude Code starts and stops this process for you.
 
 ---
 <br><br>
 
 ## 3: Register It at Project Scope
-Project scope writes the config to `.mcp.json` in the repo root — commit it and everyone who clones the project gets your server.
+Project scope writes the config to `.mcp.json` in the repo root. If you commit it, everyone who clones the project gets your server.
 
 **Action:** Run (the `--` separates Claude's options from the server's command line):
 ```bash
 claude mcp add project-health --scope project -- python3 mcpserver/project_server.py
 ```
 
-Then look at the shareable artifact that just appeared — plain JSON, no secrets:
+Then look at the shareable artifact that just appeared. It's plain JSON, no secrets:
 ```bash
 cat .mcp.json
 ```
@@ -955,14 +955,14 @@ cat .mcp.json
 <br><br>
 
 ## 4: Health-Check the Connection
-`claude mcp list` actually starts each server and reports whether it connects — your first diagnostic stop.
+`claude mcp list` actually starts each server and reports whether it connects. This is your first diagnostic stop.
 
 **Action:** Run:
 ```bash
 claude mcp list
 ```
 
-At project scope it shows **⏸ Pending approval (run `claude` to approve)** — project-scoped servers stay unapproved until you accept them in a session, next. On a connection *error*, run the server by hand (step 4) and read the message — with your own server, *you* are the maintainer.
+At project scope it shows **⏸ Pending approval (run `claude` to approve)**. Project-scoped servers stay unapproved until you accept them in a session, next. On a connection *error*, run the server by hand (step 4) and read the message.  With your own server, *you* are the maintainer.
 
 ![mcp list](./images/cc-se13.png?raw=true "mcp list")
 
@@ -988,7 +988,7 @@ claude
 /mcp
 ```
 
-Select the **project-health** server and browse its three tools. Select one — the **Full name** (`mcp__project-health__run_tests`) and a **Description** that is your merged docstring, word for word: the entire basis on which Claude decides to reach for this tool. `Esc` back to the prompt.
+Select the **project-health** server and browse its three tools. Select one from the **Full name** (`mcp__project-health__run_tests`) and a **Description** that is your merged docstring, word for word: the entire basis on which Claude decides to reach for this tool. `Esc` back to the prompt.
 
 ![mcp panel](./images/ccadv5.png?raw=true "mcp panel")
 
@@ -1001,7 +1001,7 @@ Select the **project-health** server and browse its three tools. Select one — 
 Use the project-health server to run the test suite and summarize what's failing and why.
 ```
 
-Claude calls `mcp__project-health__run_tests`, gets your captured test output back, and explains the four contract violations — the ones `/triage` found in Lab 1, now through a tool you built.
+Claude calls `mcp__project-health__run_tests`, gets your captured test output back, and explains the four contract violations: the ones `/triage` found in Lab 1, now through a tool you built.
 
 ![run tests tool](./images/ccadv6.png?raw=true "run tests tool")
 
@@ -1016,7 +1016,7 @@ Using the project-health tools, give me a one-paragraph health report on this re
 
 You should see a line like **`Called project-health 2 times`**, then a synthesized report — *Ctrl+o* expands the transcript to watch the real `mcp__project-health__...` names go by.
 
-> **Tie-back to Lab 2:** those full names are what a hook matcher targets — `"matcher": "mcp__project-health__.*"` governs *your own server's* tools the way it governed Edit/Write.
+> **Tie-back to Lab 2:** those full names are what a hook matcher targets: `"matcher": "mcp__project-health__.*"` governs *your own server's* tools the way it governed Edit/Write.
 
 ![health report](./images/ccadv7.png?raw=true "health report")
 
@@ -1078,9 +1078,17 @@ claude
 
 Select **github** and browse. Two things to notice: it connects over HTTP rather than a local process, and where your server offered three tools, this one offers dozens. Every one of those tool definitions costs context in every session — which is why the URL above ends in `/readonly`, and why you remove servers you aren't using.
 
-![github mcp panel](./images/ccadv32.png?raw=true "github mcp panel")
+![github mcp panel](./images/ccadv38.png?raw=true "github mcp panel")
 
-> Ask it something real — *"Use the github tools to summarize the open issues on this repo"* — and watch `mcp__github__...` names go by in the transcript, exactly like your own server's did.
+![github mcp panel](./images/ccadv39.png?raw=true "github mcp panel")
+
+![github mcp panel](./images/ccadv40.png?raw=true "github mcp panel")
+
+> Exit Claude and then start it with `claude --verbose`. Ask it something real — *"Use the github tools to summarize the last pull request on this repo"* — and watch for mention of the GitHub MCP tool `List pull requests`.
+>
+> ![github mcp panel](./images/ccadv41.png?raw=true "github mcp panel")
+
+
 
 ---
 <br><br>
