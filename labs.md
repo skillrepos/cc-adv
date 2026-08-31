@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.56 - 08/31/26
+## Revision 1.58 - 08/31/26
 
 <br><br>
 
@@ -510,13 +510,13 @@ exit
 ## Lab Purpose
 Use `/goal` to keep a session working until a condition holds (the **inner loop**), `/loop` to re-run work on a schedule (the **outer loop**), and `claude -p` to run a goal with no session at all. 
 
-**NOTE: Steps 1-9 run in an interactive Claude session. Step 10 runs in a regular terminal. Step 11 is reading.**
+**NOTE: Steps 1-8 run in an interactive Claude session. Step 9 ends in a terminal, and step 10 runs there too. Step 11 is reading.**
 
 ---
 <br><br>
 
 ## 1: Start Claude with Verbose On
-`/goal` is about to edit real files for real. Nothing here gets committed — Lab 5 still needs this project's tests to fail, so step 5 puts the code back with one `git restore`.
+`/goal` is about to edit real files for real. Nothing here gets committed — Lab 5 still needs this project's tests to fail, so step 9 puts the code back with one `git restore`.
 
 **Action:** In a terminal, start Claude — **with `--verbose`**:
 ```bash
@@ -575,7 +575,7 @@ You get the verdict, condition, runtime, turns and token spend. (More info can b
 ---
 <br><br>
 
-## 5: Confirm the Fix, then Put the Failures Back for Lab 5
+## 5: Confirm the Fix
 
 **Action:** In a terminal (not the Claude session), run:
 ```bash
@@ -588,17 +588,9 @@ You should see `14 passed, 0 failed`, and a diff touching `app/app.py` only — 
 ![goal status](./images/ccadv32.png?raw=true "goal status")
 
 
-Now undo it:
-```bash
-git restore app/
-python3 app/test_app.py
-```
+Leave the fix in place for now. Lab 5 needs these tests failing again, and **step 9 puts them back** — after this session is closed, for a reason that step explains.
 
-Back to `10 passed, 4 failed` — Lab 5's MCP server needs those failures to have something to report.
-
-> **Why no commit?** The Codespace is running someone else's repo, so a `git commit` there stops to offer you a fork first — a detour this lab doesn't need. And an *uncommitted* change follows you across a branch switch, which is why `git switch` alone would leave the tests still passing. `git restore` discards the edit outright; you have already seen the fix work.
-
-![goal status](./images/ccadv33.png?raw=true "goal status")
+> **Why nothing is committed.** The Codespace is running someone else's repo, so a `git commit` there stops to offer you a fork first — a detour this lab doesn't need. Nothing here needs to survive: one `git restore` at the end undoes it.
 
 ---
 <br><br>
@@ -631,10 +623,13 @@ Step 6's loop ran a prompt you typed. Plain `/loop` — no prompt at all — als
 **Action:** Create `.claude/loop.md` with these contents, and save:
 
 ```markdown
-Run python3 app/test_app.py. If anything fails, report the failing test
-names and the contract each one violates - do not fix them.
-If everything passes, say so in one line.
+Run python3 app/test_app.py fresh on every pass and report only what THAT
+run printed - never an earlier result from this conversation.
+If anything fails, name the failing tests and the contract each one
+violates - do not fix them. If everything passes, say so in one line.
 ```
+
+> That first sentence is load-bearing. This session already fixed the suite back in step 2, so "14 passed" is sitting in its context — and an agent holding the answer will happily hand it back instead of running the command. A prompt that recurs has to demand **fresh evidence** every time.
 
 From now on, bare `/loop` in this project runs *your* prompt. Project scope (`.claude/loop.md`) wins over user scope (`~/.claude/loop.md`), and edits take effect on the loop's next pass. The next step runs it.
 
@@ -651,14 +646,14 @@ Step 7 wrote the prompt. Bare `/loop` — no interval, no prompt at all — is w
 
 ![loop scheduled](./images/ccadv35.png?raw=true "loop scheduled")
 
-Claude picks up `.claude/loop.md` and works that prompt instead of the built-in maintenance one. You put the four failures back in step 5, so they're here — expect the pass to **name the failing tests and the contract each violates, and leave them alone**, because that is what your prompt told it to do.
+Claude picks up `.claude/loop.md` and works that prompt instead of the built-in maintenance one. The suite currently passes, so expect the **one-line "everything passes"** your prompt asked for — which is itself the proof that *your* file, not the built-in maintenance prompt, is what ran.
 
 > **Two pacing models, one command.** Step 6's `/loop 1m` is a fixed cron — same interval, every time. Bare `/loop` has no interval to obey, so **Claude schedules its own next wake**, anywhere from a minute to an hour, based on what the pass just found. That is the right shape for standing housekeeping and the wrong shape for a lab clock — which is why the next step cancels both rather than waiting on this one.
 
 ---
 <br><br>
 
-## 9: Inspect and Cancel the Loops
+## 9: Shut the Loops Down, then Put the Failures Back
 "Loop" is the command's name — but what `CronCreate` stored in step 6 is called a **scheduled task**, and that's the term to use when asking Claude about it. Scheduled tasks are **session-scoped**: they die with the conversation, restore on `claude --resume`, and expire after 7 days.
 
 **Action:** Check what the 1-minute loop has been writing:
@@ -675,13 +670,28 @@ Claude uses `CronList` and `CronDelete` under the hood. Both tasks — the 1-min
 
 ![loops cancelled](./images/ccadv36.png?raw=true "loops cancelled")
 
+**Action:** Now leave the session and undo the fix, so Lab 5 has failures to report on:
+```
+/exit
+```
+```bash
+git restore app/
+python3 app/test_app.py
+```
+
+`10 passed, 4 failed`. Delete `beat.md` too if you like — it has done its job.
+
+![failures restored](./images/ccadv33.png?raw=true "failures restored")
+
+> **Why the exit comes first.** Setting a goal tells Claude to *"treat the condition itself as your directive."* The Stop hook behind it clears the moment the condition is met — but that sentence stays in the session's context. Restore the file while that session is still open and it will notice, announce that your goal "is still active", and **helpfully put its fix back**. Nothing is broken; the agent is doing what you told it. Undoing an agent's work means closing the session that was told to defend it.
+
 ---
 <br><br>
 
 ## 10: (OPTIONAL) Run the Goal Loop From a Plain Shell
 Steps 6-9 were the **outer** loop — `/loop` re-running a prompt on a timer *inside* your session. This step goes back to the **inner** loop, `/goal`, and runs it with no session at all. `claude -p` is headless: it starts a session, works the goal to completion, prints one JSON result, and exits. Anything that can run a shell command — a script, a cron job, a build pipeline — can now run that loop.
 
-**Action:** Exit Claude (/exit) and run in the terminal:
+**Action:** In the terminal (you exited Claude in step 9), run:
 ```bash
 claude -p "/goal health.md exists and names the pass and fail counts from running python3 app/test_app.py" \
   --permission-mode acceptEdits --allowedTools "Bash(python3:*)" \
