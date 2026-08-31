@@ -26,13 +26,20 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 mcp = MCPServer("project-health")
 
-# ----------------------------------------------------------------------
-# SKELETON BODY -- replace everything between these dashed lines by
-# merging the three @mcp.tool() functions from extra/project_server.txt
-# (see the lab's diff-merge step), then SAVE this file.
-# Until you merge, running this file just prints the message below.
-# ----------------------------------------------------------------------
-raise SystemExit("project_server.py is still the skeleton -- merge the finished file (left side of the diff) into this body, SAVE, then run again.")
+
+# --- Tool 1 of 3: run_tests -- is the app meeting its contract? -------
+# MERGE BLOCK 1: runs app/test_app.py and hands back the pass/fail output.
+# The docstring is not decoration -- it is what Claude reads to decide
+# whether to call this tool.
+
+
+# --- Tool 2 of 3: count_todos -- how much unfinished work is here? ----
+# MERGE BLOCK 2: counts TODO/FIXME across the repo's source files.
+
+
+# --- Tool 3 of 3: project_stats -- how big is this codebase? ----------
+# MERGE BLOCK 3: file and line counts per file type.
+raise SystemExit("project_server.py is still the skeleton -- merge all three tools from the left, SAVE, then run again.")
 
 if __name__ == "__main__":
     # stdio is the default transport: Claude Code starts this process and

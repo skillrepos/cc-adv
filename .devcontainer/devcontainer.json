@@ -41,6 +41,6 @@
     }
   },
   "postCreateCommand": "npm install -g @anthropic-ai/claude-code && python3 -m venv --clear .venv && .venv/bin/python -m pip install --upgrade pip && .venv/bin/python -m pip install -r requirements.txt && echo 'for v in /workspaces/*/.venv/bin/activate; do [ -f \"$v\" ] && . \"$v\" && break; done' >> ~/.bashrc && bash .devcontainer/setup.sh",
-  "postAttachCommand": "bash .devcontainer/setup.sh",
+  "postAttachCommand": "code --install-extension ${containerWorkspaceFolder}/.devcontainer/merge-info-0.1.0.vsix --force || true; bash .devcontainer/setup.sh",
   "remoteUser": "vscode"
 }

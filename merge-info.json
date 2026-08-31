@@ -1,0 +1,93 @@
+{
+  "files": {
+    "extra/agent_loop.txt": [
+      {
+        "anchor": "options = ClaudeAgentOptions(",
+        "title": "The run's guardrails",
+        "note": [
+          "**Decides what this run is allowed to do, before it starts.**",
+          "- `allowed_tools`: pre-approved, so these never stop to ask",
+          "- `max_turns`: the loop's hard stop — the CLI's `--max-turns`"
+        ]
+      },
+      {
+        "anchor": "async for message in query(prompt=prompt, options=options):",
+        "title": "The message loop",
+        "note": [
+          "**Reads what the agent streams back and prints it as it happens.**",
+          "- Text blocks are Claude talking; tool blocks are Claude acting",
+          "- The final message carries turns, duration, and the answer"
+        ]
+      }
+    ],
+    "extra/auto_agent.txt": [
+      {
+        "anchor": "tool_name = input_data.get(\"tool_name\", \"\")",
+        "endAnchor": "command = input_data.get(\"tool_input\", {}).get(\"command\", \"\")",
+        "title": "What's about to run",
+        "note": [
+          "**Pulls out the tool's name and, for Bash, the actual command string.**",
+          "- Reading the arguments is the whole point: `ls` and `rm -rf` are both Bash"
+        ]
+      },
+      {
+        "anchor": "if tool_name == \"Bash\" and (\"rm \" in command or \"sudo\" in command):",
+        "lines": 9,
+        "title": "The one refusal",
+        "note": [
+          "**Refuses any Bash command carrying `rm ` or `sudo`.**",
+          "- `\"deny\"` stops the call before it runs",
+          "- The reason is sent back to Claude so it can adapt"
+        ]
+      },
+      {
+        "anchor": "print(f\"  [gatekeeper] allowing: {tool_name}\")",
+        "title": "The default answer",
+        "note": [
+          "**Everything else is allowed — and printed, so you can see what ran.**",
+          "- No branch returns \"ask\": there is nobody here to answer one"
+        ]
+      },
+      {
+        "anchor": "options = ClaudeAgentOptions(",
+        "endAnchor": "print(f\"Result: {message.result}\")",
+        "title": "Settings, then the run",
+        "note": [
+          "**The tools this job needs, a turn cap, and your gate wired in.**",
+          "- `matcher=None` means the hook sees *every* tool call",
+          "- Note Bash is absent from `allowed_tools` — step 9 relies on that"
+        ]
+      }
+    ],
+    "extra/project_server.txt": [
+      {
+        "anchor": "def run_tests() -> str:",
+        "lines": 10,
+        "title": "Tool 1 — run the test suite",
+        "note": [
+          "**Runs `app/test_app.py` and hands the pass/fail output back to Claude.**",
+          "- The docstring is the tool's description — it's how Claude decides to call it",
+          "- Returns plain text, exit code included"
+        ]
+      },
+      {
+        "anchor": "def count_todos() -> str:",
+        "lines": 20,
+        "title": "Tool 2 — count the TODOs",
+        "note": [
+          "**Counts TODO/FIXME comments across the repo's `.py` and `.js` files.**",
+          "- The `skip` set keeps `.venv` and `node_modules` out of the total"
+        ]
+      },
+      {
+        "anchor": "def project_stats() -> str:",
+        "lines": 17,
+        "title": "Tool 3 — size and shape",
+        "note": [
+          "**Files and line counts per file type — a quick read on the codebase.**",
+          "- Same pattern as the other two: plain function in, MCP tool out"
+        ]
+      }
+    ]
+  }
+}

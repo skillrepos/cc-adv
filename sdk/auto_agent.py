@@ -31,12 +31,18 @@ ACTIVE_TASK = TASK
 
 async def gatekeeper(input_data, tool_use_id, context):
     """PreToolUse gate: deny destructive Bash, allow everything else. Never asks a human."""
-    # GATEKEEPER (TODO 1) -- merge this body from extra/auto_agent.txt:
-    #   read tool_name and tool_input["command"]; if it's a Bash command
-    #   containing "rm " or "sudo", print a DENIED note and return a
-    #   permissionDecision of "deny"; otherwise print an "allowing" note and
-    #   return a permissionDecision of "allow".
-    raise NotImplementedError("gatekeeper: merge extra/auto_agent.txt, then save")
+    # --- 1 of 4: what is about to run ----------------------------------
+    # MERGE BLOCK 1: pull out what the CLI is asking to run -- the tool's
+    # name, and (for Bash) the command string itself.
+
+    # --- 2 of 4: the one refusal --------------------------------------
+    # MERGE BLOCK 2: the policy. A Bash command carrying "rm " or "sudo" is
+    # refused: say so on the console, and answer "deny".
+
+    # --- 3 of 4: the default answer -----------------------------------
+    # MERGE BLOCK 3: everything else is fine -- note it and answer "allow".
+    # Note what is NOT here: no "ask". Nobody is watching to answer one.
+    raise NotImplementedError("gatekeeper: merge blocks 1-3 from the left, then save")
 
 
 async def prompt_stream():
@@ -44,13 +50,11 @@ async def prompt_stream():
 
 
 async def main() -> None:
-    # ------------------------------------------------------------------
-    # SKELETON BODY (TODO 2) -- merge this whole body from
-    # extra/auto_agent.txt, then SAVE. It builds ClaudeAgentOptions with
-    # allowed_tools, max_turns, and the PreToolUse gatekeeper hook, then
-    # reads the ResultMessage.
-    # ------------------------------------------------------------------
-    raise SystemExit("auto_agent.py is still the skeleton -- merge BOTH highlighted regions from the left (the finished file) into the right, SAVE, then run again.")
+    # --- 4 of 4: the run itself ---------------------------------------
+    # MERGE BLOCK 4: the settings -- the tools this job needs, a turn cap,
+    # and gatekeeper() wired in as a PreToolUse hook on every tool -- then
+    # run the task and print the final stats.
+    raise SystemExit("auto_agent.py is still the skeleton -- merge all four blocks from the left, SAVE, then run again.")
 
 
 asyncio.run(main())

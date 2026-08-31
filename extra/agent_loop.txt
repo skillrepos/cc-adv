@@ -21,11 +21,13 @@ from claude_agent_sdk import (
 
 async def run_agent(prompt: str) -> None:
     """Send one prompt through the agent loop and print what happens."""
+    # --- 1 of 2: the run's guardrails ---------------------------------
     options = ClaudeAgentOptions(
         allowed_tools=["Read", "Glob", "Grep"],  # pre-approve read-only tools
         max_turns=5,                             # safety cap on loop iterations
     )
 
+    # --- 2 of 2: the message loop -------------------------------------
     async for message in query(prompt=prompt, options=options):
         if isinstance(message, AssistantMessage):
             for block in message.content:

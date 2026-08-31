@@ -31,8 +31,10 @@ ACTIVE_TASK = TASK
 
 async def gatekeeper(input_data, tool_use_id, context):
     """PreToolUse gate: deny destructive Bash, allow everything else. Never asks a human."""
+    # --- 1 of 4: what is about to run ----------------------------------
     tool_name = input_data.get("tool_name", "")
     command = input_data.get("tool_input", {}).get("command", "")
+    # --- 2 of 4: the one refusal --------------------------------------
     if tool_name == "Bash" and ("rm " in command or "sudo" in command):
         print(f"  [gatekeeper] DENIED: {tool_name} -> {command!r}")
         return {
@@ -42,6 +44,7 @@ async def gatekeeper(input_data, tool_use_id, context):
                 "permissionDecisionReason": "Destructive commands are blocked in unattended runs",
             }
         }
+    # --- 3 of 4: the default answer -----------------------------------
     print(f"  [gatekeeper] allowing: {tool_name}")
     return {
         "hookSpecificOutput": {
@@ -56,6 +59,7 @@ async def prompt_stream():
 
 
 async def main() -> None:
+    # --- 4 of 4: the run itself ---------------------------------------
     options = ClaudeAgentOptions(
         allowed_tools=["Read", "Glob", "Grep", "Write"],  # tools we expect it to use
         max_turns=10,                                     # hard stop for runaways

@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.52 - 08/30/26
+## Revision 1.53 - 08/30/26
 
 <br><br>
 
@@ -728,7 +728,7 @@ Run the **same Claude agent from a small Python program** First, we'll do it rea
 
 > **"Unattended" means one thing: no permission prompt is possible.** Nobody is there to click "Yes," so every permission question has to be answered *before* it is asked. Lab 3 answered them with flags. Steps 4-5 respond with a list in code. From step 6 on you answer them with **code that runs on every call**. This option can judge the *arguments*, not just the tool name.
 
-> We'll assemble some code using **diff-merge steps:** `code -d extra/<finished> sdk/<skeleton>` opens the finished file (**left**) beside your skeleton (**right**). Copy each highlighted block left → right (gutter arrow toward the right, or copy/paste) until nothing is highlighted, then **save the right file** (Cmd/Ctrl+S). 
+> We'll assemble some code using **diff-merge steps:** `code -d extra/<finished> sdk/<skeleton>` opens the finished file (**left**) beside your skeleton (**right**). Each merge is broken into a few **small numbered blocks**, one idea each — copy them left → right (gutter arrow toward the right, or copy/paste) until nothing is highlighted, then **save the right file** (Cmd/Ctrl+S). Hover a block in the left pane for a note on what it does before you merge it.
 
 ---
 <br><br>
@@ -750,7 +750,12 @@ python -m pip install claude-agent-sdk
 code sdk/agent_loop.py
 ```
 
-The imports name the pieces you'll use: `query`, `ClaudeAgentOptions`, `AssistantMessage`, `ResultMessage`. The body of `run_agent()` is a placeholder; you'll merge in the **options** (pre-approved tools plus a turn cap) and the **message loop**.
+**What this program is for:** you give it a prompt on the command line, it hands that prompt to Claude, Claude answers — using read-only tools if it needs them — and the program prints what happened along the way. That is `claude -p "..."` from Lab 3, except the loop is now yours to configure and instrument.
+
+`run_agent()` is empty. You'll merge two blocks into it:
+
+1. **The guardrails** — which tools this run may use without asking, and how many turns it may take.
+2. **The message loop** — what to print as Claude works: its text, each tool it reaches for, and the closing stats.
 
 ![skeleton view](./images/cc-se58.png?raw=true "skeleton view")
 
@@ -758,10 +763,12 @@ The imports name the pieces you'll use: `query`, `ClaudeAgentOptions`, `Assistan
 <br><br>
 
 ## 3: Diff, Merge, and Map It to the CLI
-**Action:** Run the diff, merge the **one highlighted region** (the body of `run_agent()`), save the right file, and close the tab to save your changes:
+**Action:** Run the diff, merge **both numbered blocks** left → right, save the right file, and close the tab:
 ```bash
 code -d extra/agent_loop.txt sdk/agent_loop.py
 ```
+
+You just wrote a policy and a listener. **Block 1 decides what the run is allowed to do before it starts** — that is the whole idea of running an agent unattended. **Block 2 is how you see what it did**, since there is no chat window to watch.
 
 Every piece maps to something you've already used:
 
@@ -808,14 +815,16 @@ The write isn't blocked — it just isn't *pre-approved*, and with no human atta
 <br><br>
 
 ## 6: View the Unattended Skeleton and Its Gate
-A list can only say *which tools*. Only code can judge *this call* — it is the same `Bash` tool whether the command is `ls` or `rm -rf`. So from here your code decides, and it has to see **every** call.
+**What this second program is for:** it does a real piece of work — write a report describing every `.py` file in `app/` — with nobody watching. The task is fixed in the file rather than typed at a prompt, and every tool the agent reaches for has to get past a function you wrote.
+
+Why a function and not a list? A list can only say *which tools*. It is the same `Bash` tool whether the command is `ls` or `rm -rf` — only code that reads the **arguments** can tell those apart.
 
 **Action:** Open it:
 ```bash
 code sdk/auto_agent.py
 ```
 
-The gate is a **PreToolUse hook** — `gatekeeper()` — run by the CLI *before* each tool executes, returning `"allow"` or `"deny"`. Lab 2's idea, in Python, inside your own program. (The `prompt_stream()` generator is what lets the hook run as the agent works.)
+That function is `gatekeeper()`, wired in as a **PreToolUse hook**: Claude Code calls it before each tool runs, and it answers `"allow"` or `"deny"` — never "ask", because there is nobody to ask. Lab 2's idea, in Python, inside your own program. (`prompt_stream()` is what keeps the session open so the hook can fire on each call.)
 
 ![skeleton view](./images/cc-se70.png?raw=true "skeleton view")
 
@@ -827,7 +836,14 @@ The gate is a **PreToolUse hook** — `gatekeeper()` — run by the CLI *before*
 <br><br>
 
 ## 7: Diff and Merge the Unattended Agent
-**Action:** Run the diff. This time there are **two highlighted regions** — the `gatekeeper()` body and the `main()` body. Merge **both** left → right, save the right file, and close:
+**Action:** Run the diff. This time there are **four numbered blocks** — three that build the gate, one that runs the job:
+
+1. what the CLI is about to run (tool name, and the command if it's Bash)
+2. the one refusal — `rm ` or `sudo` gets `"deny"`
+3. everything else gets `"allow"`
+4. the run itself — tools, turn cap, the hook, and the final stats
+
+Merge **all four** left → right, save the right file, and close:
 ```bash
 code -d extra/auto_agent.txt sdk/auto_agent.py
 ```
@@ -911,12 +927,12 @@ The MCP SDK makes a server out of ordinary Python functions: decorate one with `
 
 Already in place in the skeleton: the `MCPServer("project-health")` instance (that name becomes the `mcp__project-health__...` prefix) and the `mcp.run()` call that starts the stdio transport. Missing are the three tools: `run_tests()` (runs `app/test_app.py`), `count_todos()` (TODO/FIXME counts per file), and `project_stats()` (file and line counts). That's your merge.
 
-**Action:** Run the diff, merge the **one highlighted region** left → right, save the right file, and close the tab:
+**Action:** Run the diff, merge the **three numbered blocks** — one per tool — left → right, save the right file, and close the tab:
 ```bash
 code -d extra/project_server.txt mcpserver/project_server.py
 ```
 
-As you merge, read the docstrings. Each one tells Claude *when* to reach for that tool.
+Hover a block in the left pane before you merge it for a note on what it is. And as you merge, read the docstrings — each one tells Claude *when* to reach for that tool.
 
 ![diff merge server](./images/ccadv4.png?raw=true "diff merge server")
 

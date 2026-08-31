@@ -27,6 +27,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 mcp = MCPServer("project-health")
 
 
+# --- Tool 1 of 3: run_tests -- is the app meeting its contract? -------
 @mcp.tool()
 def run_tests() -> str:
     """Run the project's behavior test suite (app/test_app.py) and return the
@@ -40,6 +41,7 @@ def run_tests() -> str:
     return f"exit code: {proc.returncode}\n{output}"
 
 
+# --- Tool 2 of 3: count_todos -- how much unfinished work is here? ----
 @mcp.tool()
 def count_todos() -> str:
     """Count TODO and FIXME comments in the project's Python and JavaScript
@@ -63,6 +65,7 @@ def count_todos() -> str:
     return "\n".join(lines)
 
 
+# --- Tool 3 of 3: project_stats -- how big is this codebase? ----------
 @mcp.tool()
 def project_stats() -> str:
     """Summarize the codebase: number of files and total lines per source

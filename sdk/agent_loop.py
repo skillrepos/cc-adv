@@ -21,15 +21,14 @@ from claude_agent_sdk import (
 
 async def run_agent(prompt: str) -> None:
     """Send one prompt through the agent loop and print what happens."""
-    # ------------------------------------------------------------------
-    # SKELETON BODY -- replace everything between these dashed lines by
-    # merging from extra/agent_loop.txt (see the lab's diff-merge step),
-    # then SAVE this file. Two pieces turn this script into an agent:
-    #   1. the OPTIONS -- which tools are pre-approved, plus a turn cap
-    #   2. the LOOP    -- read each message query() streams back: Claude's
-    #                     text replies and the tool calls it makes
-    # ------------------------------------------------------------------
-    raise SystemExit("agent_loop.py is still the skeleton -- merge the finished file (left side of the diff) into this body, SAVE, then run again.")
+    # --- 1 of 2: the run's guardrails ---------------------------------
+    # MERGE BLOCK 1: the settings this run works under -- which tools are
+    # pre-approved, and the cap on how many turns the loop may take.
+
+    # --- 2 of 2: the message loop -------------------------------------
+    # MERGE BLOCK 2: read what query() streams back -- Claude's text, each
+    # tool call it makes, and the final stats.
+    raise SystemExit("agent_loop.py is still the skeleton -- merge BOTH blocks from the left, SAVE, then run again.")
 
 
 if __name__ == "__main__":
