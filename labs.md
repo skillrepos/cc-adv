@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.54 - 08/30/26
+## Revision 1.55 - 08/31/26
 
 <br><br>
 
@@ -454,7 +454,7 @@ The tool call is **blocked** before it touches the file, and the hook's stderr m
 ## 8: Generate Some Bash Traffic
 PostToolUse fires *after* a tool call succeeds — it can't block, but it's ideal for auditing and logging. So we'll create some activity to be logged by it.
 
-**Action:** Type:
+**Action:** Type (in Claude):
 ```
 Use bash to list the files in this project and count the lines in app/app.py.
 ```
@@ -465,7 +465,7 @@ Let Claude run its commands.
 <br><br>
 
 ## 9: Check the Audit Log
-**Action:** Type:
+**Action:** Type (in Claude):
 ```
 ! cat .claude/bash-command-log.txt
 ```
