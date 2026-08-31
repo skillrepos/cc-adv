@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.62 - 08/31/26
+## Revision 1.63 - 08/31/26
 
 <br><br>
 
@@ -940,7 +940,8 @@ ls agent_report.md
 <br><br>
 # Lab 5: Build a Custom MCP Server
 ## Lab Purpose
-You've *used* MCP servers; now **build one**. Complete a Python MCP server exposing three "project health" tools, register it at project scope, drive it from natural-language prompts, then connect a real remote server. Estimated time: 10-12 minutes.
+
+Complete a Python MCP server exposing three "project health" tools, register it at project scope, drive it from natural-language prompts, then connect a real remote server. 
 
 > **MCP in one paragraph:** an MCP server is a process Claude Code talks to over stdin/stdout (or HTTP), exposing *tools* Claude can call. Add one with `claude mcp add <name> -- <command>`, inspect it with `/mcp`; its tools are named `mcp__<server>__<tool>`. Today the server is yours.
 
@@ -960,7 +961,7 @@ code -d extra/project_server.txt mcpserver/project_server.py
 
 Hover a block in the left pane before you merge it for a note on what it is. And as you merge, read the docstrings — each one tells Claude *when* to reach for that tool.
 
-![diff merge server](./images/ccadv4.png?raw=true "diff merge server")
+![diff merge server](./images/ccadv44.png?raw=true "diff merge server")
 
 ---
 <br><br>
@@ -1032,7 +1033,13 @@ claude
 
 Select the **project-health** server and browse its three tools. Select one from the **Full name** (`mcp__project-health__run_tests`) and a **Description** that is your merged docstring, word for word: the entire basis on which Claude decides to reach for this tool. `Esc` back to the prompt.
 
+![mcp panel](./images/ccadv45.png?raw=true "mcp panel")
+
+![mcp panel](./images/ccadv46.png?raw=true "mcp panel")
+
 ![mcp panel](./images/ccadv5.png?raw=true "mcp panel")
+
+![mcp panel](./images/ccadv47.png?raw=true "mcp panel")
 
 ---
 <br><br>
