@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.59 - 08/31/26
+## Revision 1.60 - 08/31/26
 
 <br><br>
 
@@ -508,7 +508,7 @@ exit
 
 # Lab 3: Loops Instead of Prompts — `/goal` and `/loop`
 ## Lab Purpose
-Use `/goal` to keep a session working until a condition holds (the **inner loop**), `/loop` to re-run work on a schedule (the **outer loop**), and `claude -p` to run a goal with no session at all. 
+Two ways to keep an agent working: `/goal` keeps **one session going for more turns** until a condition holds, `/loop` starts **a new turn later** on a schedule, and `claude -p` runs a goal with no session at all. 
 
 **NOTE: Steps 1-8 run in an interactive Claude session. Step 9 ends in a terminal, and step 10 runs there too. Step 11 is reading.**
 
@@ -596,7 +596,7 @@ Leave the fix in place for now. Lab 5 needs these tests failing again, and **ste
 <br><br>
 
 ## 6: Schedule a Repeating Prompt with `/loop`
-The `/goal` from steps 2-4 was the **inner loop**: one session working turn after turn until its condition held. `/loop` is the **outer loop**: it re-runs a prompt you give it on a timer, for as long as the session stays open.
+`/goal` in steps 2-4 kept **one session going**: turn after turn, until its condition held. `/loop` is the other axis — **the same prompt, again later**, on a timer, for as long as the session stays open.
 
 **Action:** Back in the Claude session, type:
 ```
@@ -691,7 +691,7 @@ python3 app/test_app.py
 <br><br>
 
 ## 10: (OPTIONAL) Run the Goal Loop From a Plain Shell
-Steps 6-9 were the **outer** loop — `/loop` re-running a prompt on a timer *inside* your session. This step goes back to the **inner** loop, `/goal`, and runs it with no session at all. `claude -p` is headless: it starts a session, works the goal to completion, prints one JSON result, and exits. Anything that can run a shell command — a script, a cron job, a build pipeline — can now run that loop.
+Steps 6-9 repeated work over time — `/loop` re-running a prompt on a timer *inside* your session. This step goes back to `/goal`, the one that keeps working within a single run, and runs it with no session at all. `claude -p` is headless: it starts a session, works the goal to completion, prints one JSON result, and exits. Anything that can run a shell command — a script, a cron job, a build pipeline — can now run that loop.
 
 **Action:** In the terminal (you exited Claude in step 9), run:
 ```bash
@@ -725,9 +725,9 @@ Every loop needs a stop condition, and every unattended loop needs a budget. (Re
 
 ## Lab Summary
 ✅ You've used:
-- `/goal` — an inner loop that works until a condition holds, judged by a separate evaluator model
+- `/goal` — one session that keeps taking turns until a condition holds, judged by a separate evaluator model
 - Reading the evaluator's verdicts, and writing a condition it can actually judge
-- `/loop` — an outer loop on an interval, backed by `CronCreate` / `CronList` / `CronDelete`
+- `/loop` — the same prompt again later, on an interval, backed by `CronCreate` / `CronList` / `CronDelete`
 - `loop.md` + bare `/loop` — replacing the built-in maintenance prompt with your own, and running it
 - Running the same goal headless with `claude -p` and `--output-format json`
 - Bounding a loop: stop clauses and `--max-turns`
