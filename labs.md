@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.63 - 08/31/26
+## Revision 1.64 - 08/31/26
 
 <br><br>
 
@@ -1107,7 +1107,10 @@ Now look at what got written:
 cat .mcp.json
 ```
 
-You should see the literal text `${GITHUB_TOKEN}` — **not** your token. Double quotes would have let the shell expand it and baked your credentials into a file you're about to commit; single quotes left the placeholder for Claude Code to resolve at startup. Two characters decide whether this file is safe to share.
+You should see the literal text `${GITHUB_TOKEN}` — **not** your token. Double quotes would have let the shell expand it and baked your credentials into a file you're about to commit; single quotes left the placeholder for Claude Code to resolve at startup. 
+
+![mcp file for GitHub](./images/ccadv48.png?raw=true "mcp file for GitHub")
+
 
 > **Order matters here.** The name and URL must come *before* `--header`; `--header` is repeatable, so if it appears first it swallows `github` and the URL as extra header values and the CLI reports `error: missing required argument 'name'`.
 
@@ -1117,10 +1120,12 @@ You should see the literal text `${GITHUB_TOKEN}` — **not** your token. Double
 <br><br>
 
 ## 11: Inspect the Remote Server
-**Action:** Start Claude, approve the new server when prompted — the same gate you saw in step 5, now protecting you from someone else's service — then type:
+**Action:** Start Claude, approve the new server when prompted — the same gate you saw in step 5, now protecting you from someone else's service.
 ```bash
 claude
 ```
+Then type:
+
 ```
 /mcp
 ```
@@ -1133,9 +1138,12 @@ Select **github** and browse. Two things to notice: it connects over HTTP rather
 
 ![github mcp panel](./images/ccadv40.png?raw=true "github mcp panel")
 
-> Exit Claude and then start it with `claude --verbose`. Ask it something real — *"Use the github tools to summarize the last pull request on this repo"* — and watch for mention of the GitHub MCP tool `List pull requests`.
->
-> ![github mcp panel](./images/ccadv41.png?raw=true "github mcp panel")
+![github mcp panel](./images/ccadv49.png?raw=true "github mcp panel")
+
+ 
+Exit Claude and then start it with `claude --verbose`. Ask it something real — *"Use the github tools to summarize the last pull request on this repo"* — and watch for mention of the GitHub MCP tool `List pull requests`.
+
+![github mcp panel](./images/ccadv41.png?raw=true "github mcp panel")
 
 
 
