@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.55 - 08/31/26
+## Revision 1.56 - 08/31/26
 
 <br><br>
 
@@ -510,20 +510,15 @@ exit
 ## Lab Purpose
 Use `/goal` to keep a session working until a condition holds (the **inner loop**), `/loop` to re-run work on a schedule (the **outer loop**), and `claude -p` to run a goal with no session at all. 
 
-**NOTE: Steps 1-8 run in an interactive Claude session. Step 9 runs in a regular terminal. Step 10 is reading.**
+**NOTE: Steps 1-9 run in an interactive Claude session. Step 10 runs in a regular terminal. Step 11 is reading.**
 
 ---
 <br><br>
 
-## 1: Work on a Throwaway Branch
-`/goal` is about to change real files, and Lab 5 still needs this project's tests to fail. So we'll use Git to work in another branch temporarily.
+## 1: Start Claude with Verbose On
+`/goal` is about to edit real files for real. Nothing here gets committed — Lab 5 still needs this project's tests to fail, so step 5 puts the code back with one `git restore`.
 
-**Action:** In a terminal, run:
-```bash
-git switch -c loop-lab
-```
-
-Then start Claude in that same directory — **with `--verbose`**:
+**Action:** In a terminal, start Claude — **with `--verbose`**:
 ```bash
 claude --verbose
 ```
@@ -580,7 +575,7 @@ You get the verdict, condition, runtime, turns and token spend. (More info can b
 ---
 <br><br>
 
-## 5: Confirm the Fixes, then Restore the Failures so they're in place for Lab 5.
+## 5: Confirm the Fix, then Put the Failures Back for Lab 5
 
 **Action:** In a terminal (not the Claude session), run:
 ```bash
@@ -593,13 +588,15 @@ You should see `14 passed, 0 failed`, and a diff touching `app/app.py` only — 
 ![goal status](./images/ccadv32.png?raw=true "goal status")
 
 
-Now go back to the main branch:
+Now undo it:
 ```bash
-git add -A && git commit -m "goal: fix 400/404 contract violations"
-git switch -
+git restore app/
+python3 app/test_app.py
 ```
 
-`python3 app/test_app.py` should report `10 passed, 4 failed` again — Lab 5 needs those failures. The fix stays on `loop-lab`.
+Back to `10 passed, 4 failed` — Lab 5's MCP server needs those failures to have something to report.
+
+> **Why no commit?** The Codespace is running someone else's repo, so a `git commit` there stops to offer you a fork first — a detour this lab doesn't need. And an *uncommitted* change follows you across a branch switch, which is why `git switch` alone would leave the tests still passing. `git restore` discards the edit outright; you have already seen the fix work.
 
 ![goal status](./images/ccadv33.png?raw=true "goal status")
 
@@ -654,7 +651,7 @@ Step 7 wrote the prompt. Bare `/loop` — no interval, no prompt at all — is w
 
 ![loop scheduled](./images/ccadv35.png?raw=true "loop scheduled")
 
-Claude picks up `.claude/loop.md` and works that prompt instead of the built-in maintenance one. You switched off `loop-lab` back in step 5, so the four failures are here again — expect the pass to **name the failing tests and the contract each violates, and leave them alone**, because that is what your prompt told it to do.
+Claude picks up `.claude/loop.md` and works that prompt instead of the built-in maintenance one. You put the four failures back in step 5, so they're here — expect the pass to **name the failing tests and the contract each violates, and leave them alone**, because that is what your prompt told it to do.
 
 > **Two pacing models, one command.** Step 6's `/loop 1m` is a fixed cron — same interval, every time. Bare `/loop` has no interval to obey, so **Claude schedules its own next wake**, anywhere from a minute to an hour, based on what the pass just found. That is the right shape for standing housekeeping and the wrong shape for a lab clock — which is why the next step cancels both rather than waiting on this one.
 
