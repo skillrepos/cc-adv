@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.60 - 08/31/26
+## Revision 1.61 - 08/31/26
 
 <br><br>
 
@@ -883,7 +883,7 @@ cat agent_report.md
 
 You should see every `.py` file in `app/` listed with a one-line description.
 
-![gatekeeper run](./images/cc-se73.png?raw=true "gatekeeper run")
+![gatekeeper run](./images/ccadv43.png?raw=true "gatekeeper run")
 
 ---
 <br><br>
