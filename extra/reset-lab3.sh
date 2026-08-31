@@ -10,6 +10,14 @@
 #     --dry-run   show what would happen, change nothing
 #     --force     run even if a Claude session looks like it is still open
 #
+# Never take the user's shell down with us: if this file was sourced, say so
+# and return instead of exiting.
+if [ "${BASH_SOURCE[0]-$0}" != "$0" ]; then
+  printf '%s\n' "Run this as a script, not with 'source':" \
+                 "    bash extra/reset-lab3.sh" >&2
+  return 1
+fi
+
 set -uo pipefail
 
 DRY=0; FORCE=0
