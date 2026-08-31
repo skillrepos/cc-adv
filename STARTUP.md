@@ -102,9 +102,9 @@ You'll see a welcome message and some update information.
 ```
 /model
 ```
-In the list that comes up, if the default doesn't already have Sonnet selected, use the arrow keys to move the pointer to the *Sonnet* entry (usually "Default", "1" or "4" - depending on your plan) and hit *Enter*. 
+First, use the left/right arrow keys to change the effort to *Medium effort*. 
 
-Separately, use the left/right arrow keys to change the effort to *Medium effort*. (The exact model versions listed may differ from the screenshot — pick the current Sonnet model.)
+In the list that comes up, if the default doesn't already have Sonnet selected, use the arrow keys to move the pointer to the *Sonnet* entry (usually "Default", "1" or "4" - depending on your plan) and hit *Enter*. 
 
 ![model selection](./images/ccode275.png?raw=true "model selection")
 
