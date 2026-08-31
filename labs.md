@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.64 - 08/31/26
+## Revision 1.65 - 08/31/26
 
 <br><br>
 
@@ -1152,13 +1152,15 @@ Exit Claude and then start it with `claude --verbose`. Ask it something real —
 
 ## 12: Exit (and Optional Cleanup)
 
-**Action:** Type `exit` to leave Claude. To remove the server registration afterwards:
+**Action:** Type `exit` to leave Claude. To remove both server registrations afterwards:
 ```bash
 claude mcp remove project-health
-claude mcp remove github --scope project
+claude mcp remove github
 ```
 
-(Leaving it is fine too — it's your repo's feature now.)
+No `--scope` needed here. On `add` the scope decides *where the entry is written* — `project` put both of these in the shareable `.mcp.json`. On `remove`, Claude Code finds whichever scope the server lives in; you only name a scope when the same server name exists in more than one, and it stops to ask.
+
+(Leaving them is fine too — they're your repo's feature now.)
 
 ## Lab Summary
 ✅ You've:
