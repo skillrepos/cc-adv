@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.53 - 08/30/26
+## Revision 1.54 - 08/30/26
 
 <br><br>
 
@@ -409,6 +409,8 @@ claude-yolo (if running in the codespace. Note you may need to open a new termin
 
 > Pay attention on the warning screen — choose **2. Yes, I accept**. The status line now reads *bypass permissions on*.
 
+> **Save `settings.json` before you start Claude.** Hooks are read when the session starts. If Claude was already running when you created or edited the file — or if the file was still unsaved — this session doesn't have your hook. Opening `/hooks` (the next step) reloads the config; restarting Claude also works.
+
 ---
 <br><br>
 
@@ -438,6 +440,12 @@ Add a connection_timeout setting to config.json using the Edit tool.
 The tool call is **blocked** before it touches the file, and the hook's stderr message surfaces in the conversation — Claude reads it too.
 
 ![Edit blocked by hook](./images/cc-se10.png?raw=true "Edit blocked by hook")
+
+> **If the edit goes through instead**, the hook isn't running. Silent success and "never loaded" look identical, so check in this order, in a terminal:
+> ```bash
+> echo '{"tool_name":"Edit","tool_input":{"file_path":"config.json"}}' | .claude/hooks/protect-config.sh; echo $?
+> ```
+> That must print the POLICY line and `2`. If it prints nothing and `0`, the script is the problem — `jq` missing, or the execute bit from step 3. If it *does* print `2`, the script is fine and the session simply never loaded it: save `.claude/settings.json`, then open `/hooks` or restart Claude.
 
 ---
 <br><br>
