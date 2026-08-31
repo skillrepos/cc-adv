@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.61 - 08/31/26
+## Revision 1.62 - 08/31/26
 
 <br><br>
 
@@ -892,8 +892,17 @@ You should see every `.py` file in `app/` listed with a one-line description.
 The file already carries a second task — one that asks for a destructive command. Switch to it.
 
 **Action:** In `sdk/auto_agent.py`, find this line near the top, change `TASK` to `TASK_DENY`, and **save**:
+
+Change
+
 ```python
 ACTIVE_TASK = TASK
+```
+
+to
+
+```python
+ACTIVE_TASK = TASK_DENY
 ```
 
 **Action:** Run it again and watch for the deny line:
