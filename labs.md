@@ -1,7 +1,7 @@
 # Advanced Claude Code: True AI Productivity
 ## Go beyond the basics — advanced delegation, hooks, loops, the Agent SDK, and working with MCP
 ## Session Labs
-## Revision 1.65 - 08/31/26
+## Revision 1.66 - 09/03/26
 
 <br><br>
 
@@ -966,20 +966,7 @@ Hover a block in the left pane before you merge it for a note on what it is. And
 ---
 <br><br>
 
-## 2: Start It Once by Hand
-"Success" for a stdio server is **silence**. it's waiting for a client to speak JSON-RPC on stdin.
-
-**Action:** Run:
-```bash
-python3 mcpserver/project_server.py
-```
-
-Nothing appears — correct. (The skeleton message means the merge didn't save.) Stop it with `Ctrl+C`. The subsequent long `KeyboardInterrupt` traceback is expected, not a failure. From now on Claude Code starts and stops this process for you.
-
----
-<br><br>
-
-## 3: Register It at Project Scope
+## 2: Register It at Project Scope
 Project scope writes the config to `.mcp.json` in the repo root. If you commit it, everyone who clones the project gets your server.
 
 **Action:** Run (the `--` separates Claude's options from the server's command line):
@@ -997,7 +984,7 @@ cat .mcp.json
 ---
 <br><br>
 
-## 4: Health-Check the Connection
+## 3: Health-Check the Connection
 `claude mcp list` actually starts each server and reports whether it connects. This is your first diagnostic stop.
 
 **Action:** Run:
@@ -1012,7 +999,7 @@ At project scope it shows **⏸ Pending approval (run `claude` to approve)**. Pr
 ---
 <br><br>
 
-## 5: Start Claude and Approve Your Server
+## 4: Start Claude and Approve Your Server
 Because `.mcp.json` can arrive in a repo from *anyone*, Claude Code asks before running project-scoped servers.
 
 **Action:** Start Claude (*don't use* bypass mode here) and approve the server when prompted:
@@ -1025,7 +1012,7 @@ claude
 ---
 <br><br>
 
-## 6: Inspect It with /mcp
+## 5: Inspect It with /mcp
 **Action:** Type:
 ```
 /mcp
@@ -1044,7 +1031,7 @@ Select the **project-health** server and browse its three tools. Select one from
 ---
 <br><br>
 
-## 7: Drive the Server: Run the Test Suite
+## 6: Drive the Server: Run the Test Suite
 **Action:** Type:
 ```
 Use the project-health server to run the test suite and summarize what's failing and why.
@@ -1057,7 +1044,7 @@ Claude calls `mcp__project-health__run_tests`, gets your captured test output ba
 ---
 <br><br>
 
-## 8: Drive the Server: Full Health Report
+## 7: Drive the Server: Full Health Report
 **Action:** Type:
 ```
 Using the project-health tools, give me a one-paragraph health report on this repo: test status, TODO count, and overall size.
@@ -1074,7 +1061,7 @@ You should see a line like **`Called project-health 2 times`**, then a synthesiz
 
 **OPTIONAL** Steps 9-11: Get a personal access token for GitHub and connect Claude to the GitHub MCP server and use it.
 
-## 9: Get a GitHub Token
+## 8: Get a GitHub Token
 Your server needed no credentials — it's a local process you already trust. **Remote** servers are someone else's service over HTTPS, so they need authentication. GitHub publishes one, and everything else in this lab applies to it unchanged.
 
 **Action:** While logged into GitHub, click the link below, enter a note, and click the green **Generate token** button at the bottom. The scopes are pre-selected for you.
@@ -1091,12 +1078,18 @@ On the next screen, **copy the generated token and save it** — you will not be
 ---
 <br><br>
 
-## 10: Register the Remote Server — Without Committing Your Token
+## 9: Register the Remote Server — Without Committing Your Token
 Claude Code expands `${VAR}` in `.mcp.json` **when a session starts**, so the file can name a secret it never contains.
 
-**Action:** Leave Claude with `/exit`. Then, in the terminal, export your token and register the server — note the **single** quotes:
+**Action:** Leave Claude with `/exit`. Then, in the terminal, export your token. 
+
 ```bash
 export GITHUB_TOKEN=<paste-your-token>
+```
+
+Next, register the server — note the **single** quotes:
+
+```bash
 claude mcp add --scope project --transport http \
   github https://api.githubcopilot.com/mcp/readonly \
   --header 'Authorization: Bearer ${GITHUB_TOKEN}'
@@ -1119,7 +1112,7 @@ You should see the literal text `${GITHUB_TOKEN}` — **not** your token. Double
 ---
 <br><br>
 
-## 11: Inspect the Remote Server
+## 10: Inspect the Remote Server
 **Action:** Start Claude, approve the new server when prompted — the same gate you saw in step 5, now protecting you from someone else's service.
 ```bash
 claude
@@ -1140,8 +1133,13 @@ Select **github** and browse. Two things to notice: it connects over HTTP rather
 
 ![github mcp panel](./images/ccadv49.png?raw=true "github mcp panel")
 
+---
+<br><br>
+
  
-Exit Claude and then start it with `claude --verbose`. Ask it something real — *"Use the github tools to summarize the last pull request on this repo"* — and watch for mention of the GitHub MCP tool `List pull requests`.
+## 11: Try out a command that will exercise the GitHub MCP server.
+
+**Action:** Exit Claude and then start it with `claude --verbose`. Ask it something real — *"Use the github tools to summarize the last pull request on this repo"* — and watch for mention of the GitHub MCP tool `List pull requests`.
 
 ![github mcp panel](./images/ccadv41.png?raw=true "github mcp panel")
 
