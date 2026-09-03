@@ -1059,7 +1059,7 @@ You should see a line like **`Called project-health 2 times`**, then a synthesiz
 ---
 <br><br>
 
-**OPTIONAL** Steps 9-11: Get a personal access token for GitHub and connect Claude to the GitHub MCP server and use it.
+**OPTIONAL** Steps 8-11: Get a personal access token for GitHub and connect Claude to the GitHub MCP server and use it.
 
 ## 8: Get a GitHub Token
 Your server needed no credentials — it's a local process you already trust. **Remote** servers are someone else's service over HTTPS, so they need authentication. GitHub publishes one, and everything else in this lab applies to it unchanged.
