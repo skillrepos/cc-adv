@@ -1,3 +1,5 @@
+## NOTE: These instructions are written from the standpoint of a VS Code environment. If you are running Claude locally on a Mac or Windows system, adapt any VSCode-specific instructions to your local environment.
+
 ## Step 1: Start Claude Code
 **What we're doing:** Launching Claude Code in interactive mode.  
 **Why:** This is the primary way you'll interact with Claude for coding tasks.
